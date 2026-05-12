@@ -1,0 +1,1758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>POLARIS // Liberty London Enterprise Intelligence Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ─── THEME ──────────────────────────────────────────────── */
+:root {
+  --bg:        #03070f;
+  --bg2:       #060d1a;
+  --bg3:       #091222;
+  --bgcard:    #080f1d;
+  --border:    rgba(59,130,246,.10);
+  --border2:   rgba(59,130,246,.22);
+  --border3:   rgba(59,130,246,.40);
+  --text:      #eaf2ff;
+  --text2:     #6b8dae;
+  --text3:     #3d5570;
+  --blue:      #3b82f6;
+  --blue2:     #60a5fa;
+  --cyan:      #22d3ee;
+  --green:     #34d399;
+  --amber:     #fbbf24;
+  --red:       #f87171;
+  --purple:    #a78bfa;
+  --glow:      rgba(59,130,246,.20);
+  --glow2:     rgba(59,130,246,.08);
+  --f-display: 'Space Grotesk', sans-serif;
+  --f-body:    'Inter', sans-serif;
+  --f-mono:    'JetBrains Mono', monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px;scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--f-body);overflow:hidden;height:100vh;width:100vw}
+::selection{background:rgba(59,130,246,.35);color:#fff}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+
+/* ─── INTRO ──────────────────────────────────────────────── */
+#intro {
+  position:fixed;inset:0;z-index:200;background:#000;
+  display:flex;align-items:center;justify-content:center;
+  transition:opacity .8s ease;
+}
+#intro.exit{opacity:0;pointer-events:none}
+#three-canvas{position:absolute;inset:0;width:100%;height:100%}
+
+#intro-ui {
+  position:relative;z-index:10;
+  display:flex;flex-direction:column;align-items:center;
+  gap:0;text-align:center;pointer-events:none;
+}
+/* flash overlay */
+#flash {
+  position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(circle at 50% 50%, rgba(120,180,255,.95) 0%, rgba(59,130,246,.5) 30%, transparent 70%);
+  opacity:0;
+}
+
+#intro-title {
+  font-family:var(--f-display);font-size:clamp(64px,9.5vw,118px);
+  font-weight:700;letter-spacing:0.28em;color:#fff;
+  text-shadow:0 0 60px rgba(59,130,246,.9),0 0 120px rgba(59,130,246,.5),0 0 200px rgba(59,130,246,.25);
+  white-space:nowrap;min-height:1.2em;
+  border-right:3px solid transparent;
+}
+#intro-title.typing{
+  border-right-color:#60a5fa;
+  animation:blinkCaret .65s step-end infinite, titleSlam .25s cubic-bezier(.2,1.6,.4,1) forwards;
+}
+#intro-title.done{border-right-color:transparent;animation:none}
+@keyframes blinkCaret{50%{border-right-color:transparent}}
+@keyframes titleSlam{
+  0%  {transform:scale(1.22);opacity:0;filter:blur(12px)}
+  60% {filter:blur(0)}
+  100%{transform:scale(1);opacity:1}
+}
+
+#intro-sub {
+  font-family:var(--f-mono);font-size:clamp(11px,1.4vw,13px);
+  letter-spacing:.16em;color:var(--blue2);
+  text-transform:uppercase;margin-top:16px;
+  opacity:0;transition:opacity 1s ease;
+}
+#intro-sub.show{opacity:1}
+
+#intro-meta {
+  font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;
+  color:var(--text3);margin-top:10px;
+  opacity:0;transition:opacity .8s ease;
+}
+#intro-meta.show{opacity:1}
+
+#intro-divider {
+  width:120px;height:1px;background:linear-gradient(90deg,transparent,var(--blue),transparent);
+  margin:28px 0;opacity:0;transition:opacity .8s ease;
+}
+#intro-divider.show{opacity:1}
+
+#enter-btn {
+  font-family:var(--f-mono);font-size:11px;font-weight:500;
+  letter-spacing:.2em;text-transform:uppercase;
+  color:var(--blue2);background:transparent;
+  border:1px solid var(--border2);
+  padding:14px 40px;cursor:pointer;pointer-events:all;
+  position:relative;overflow:hidden;
+  opacity:0;transition:opacity .8s ease, border-color .3s, color .3s;
+}
+#enter-btn.show{opacity:1}
+#enter-btn:hover{border-color:var(--blue);color:#fff;background:rgba(59,130,246,.08)}
+#enter-btn::before {
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(90deg,transparent,rgba(59,130,246,.15),transparent);
+  transform:translateX(-100%);transition:transform .6s ease;
+}
+#enter-btn:hover::before{transform:translateX(100%)}
+
+/* scan line */
+#scan {
+  position:absolute;inset-x:0;top:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--blue),transparent);
+  opacity:0;animation:scan 4s ease-in-out infinite;
+}
+@keyframes scan{0%{top:0;opacity:0}10%{opacity:.6}90%{opacity:.3}100%{top:100%;opacity:0}}
+
+/* ─── MAIN APP ───────────────────────────────────────────── */
+#app {
+  display:flex;height:100vh;
+  opacity:0;pointer-events:none;
+  transition:opacity .6s ease;
+}
+#app.visible{opacity:1;pointer-events:all}
+
+/* SIDEBAR */
+#sidebar {
+  width:220px;flex-shrink:0;
+  background:var(--bg2);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  padding:0;overflow:hidden;
+  position:relative;
+}
+#sidebar::after{
+  content:'';position:absolute;right:0;top:0;bottom:0;width:1px;
+  background:linear-gradient(180deg,transparent,var(--blue),transparent);
+  opacity:.3;
+}
+
+.sb-logo {
+  padding:24px 20px 20px;
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;
+}
+.sb-logo-star{
+  font-size:18px;color:var(--blue);
+  text-shadow:0 0 12px var(--blue);
+  animation:starPulse 3s ease-in-out infinite;
+}
+.sb-logo-text{
+  font-family:var(--f-display);font-weight:700;font-size:15px;
+  letter-spacing:.12em;color:var(--text);
+}
+.sb-logo-sub{
+  font-family:var(--f-mono);font-size:8px;letter-spacing:.12em;
+  color:var(--text3);text-transform:uppercase;margin-top:1px;
+}
+
+.sb-section{padding:20px 0 8px;border-bottom:1px solid var(--border)}
+.sb-section-label{
+  font-family:var(--f-mono);font-size:9px;letter-spacing:.16em;
+  color:var(--text3);text-transform:uppercase;
+  padding:0 20px 8px;
+}
+.sb-link {
+  display:flex;align-items:center;gap:10px;
+  padding:8px 20px;cursor:pointer;
+  font-family:var(--f-body);font-size:12px;font-weight:500;
+  color:var(--text2);text-decoration:none;
+  transition:all .2s;position:relative;
+  border-left:2px solid transparent;
+}
+.sb-link:hover{color:var(--text);background:rgba(59,130,246,.06)}
+.sb-link.active{
+  color:var(--blue2);
+  border-left:2px solid var(--blue);
+  background:rgba(59,130,246,.08);
+}
+.sb-link-dot{
+  width:5px;height:5px;border-radius:50%;
+  background:var(--text3);flex-shrink:0;
+  transition:background .2s, box-shadow .2s;
+}
+.sb-link.active .sb-link-dot,
+.sb-link:hover .sb-link-dot{
+  background:var(--blue);
+  box-shadow:0 0 8px var(--blue);
+}
+
+.sb-status {
+  margin-top:auto;padding:16px 20px;
+  border-top:1px solid var(--border);
+}
+.sb-status-line{
+  font-family:var(--f-mono);font-size:9px;letter-spacing:.1em;
+  color:var(--text3);text-transform:uppercase;line-height:1.8;
+}
+.sb-status-dot{
+  display:inline-block;width:6px;height:6px;border-radius:50%;
+  background:var(--green);margin-right:6px;
+  box-shadow:0 0 6px var(--green);
+  animation:pulse 2s ease-in-out infinite;
+}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+
+/* CONTENT */
+#content{
+  flex:1;overflow-y:auto;
+  scroll-snap-type:y mandatory;
+  scroll-behavior:smooth;
+}
+
+.section {
+  min-height:100vh;
+  scroll-snap-align:start;
+  padding:60px 64px;
+  position:relative;
+  display:flex;flex-direction:column;
+  justify-content:center;
+}
+.section+.section{border-top:1px solid var(--border)}
+
+/* Grid background */
+.section::before {
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background-image:
+    linear-gradient(var(--glow2) 1px,transparent 1px),
+    linear-gradient(90deg,var(--glow2) 1px,transparent 1px);
+  background-size:44px 44px;
+  mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,#000 50%,transparent 100%);
+}
+
+/* ─── TYPOGRAPHY ─────────────────────────────────────────── */
+.section-eyebrow {
+  font-family:var(--f-mono);font-size:10px;letter-spacing:.2em;
+  color:var(--blue);text-transform:uppercase;margin-bottom:14px;
+  display:flex;align-items:center;gap:10px;
+}
+.section-eyebrow::before{content:'//';color:var(--text3)}
+.section-title {
+  font-family:var(--f-display);font-size:clamp(28px,3.5vw,44px);
+  font-weight:700;line-height:1.1;color:var(--text);
+  margin-bottom:12px;
+}
+.section-sub {
+  font-family:var(--f-body);font-size:15px;line-height:1.7;
+  color:var(--text2);max-width:640px;margin-bottom:40px;
+}
+.mono{font-family:var(--f-mono)}
+.blue{color:var(--blue2)}
+.green{color:var(--green)}
+.amber{color:var(--amber)}
+.red{color:var(--red)}
+.muted{color:var(--text3)}
+
+/* ─── COMPONENTS ─────────────────────────────────────────── */
+.card {
+  background:var(--bgcard);
+  border:1px solid var(--border);
+  border-radius:2px;
+  padding:24px;
+  position:relative;
+  transition:border-color .2s;
+}
+.card:hover{border-color:var(--border2)}
+.card::after {
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--border2),transparent);
+}
+
+.badge {
+  display:inline-flex;align-items:center;gap:6px;
+  font-family:var(--f-mono);font-size:10px;letter-spacing:.1em;
+  text-transform:uppercase;padding:3px 10px;border-radius:2px;
+  border:1px solid;
+}
+.badge.live{color:var(--green);border-color:rgba(52,211,153,.3);background:rgba(52,211,153,.06)}
+.badge.partial{color:var(--amber);border-color:rgba(251,191,36,.3);background:rgba(251,191,36,.06)}
+.badge.tbc{color:var(--text3);border-color:var(--border);background:transparent}
+.badge::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor}
+
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border)}
+.stat-item{
+  background:var(--bgcard);padding:28px 24px;
+  display:flex;flex-direction:column;gap:8px;
+}
+.stat-num{
+  font-family:var(--f-display);font-size:48px;font-weight:700;
+  color:var(--text);line-height:1;letter-spacing:-.02em;
+}
+.stat-num span{font-size:24px;color:var(--blue)}
+.stat-label{font-family:var(--f-mono);font-size:10px;letter-spacing:.15em;color:var(--text3);text-transform:uppercase}
+.stat-sub{font-size:12px;color:var(--text2)}
+
+/* Data table */
+.data-table{width:100%;border-collapse:collapse;font-size:12px}
+.data-table th {
+  font-family:var(--f-mono);font-size:9px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--text3);
+  border-bottom:1px solid var(--border);
+  padding:10px 16px;text-align:left;white-space:nowrap;
+}
+.data-table td{
+  padding:9px 16px;border-bottom:1px solid var(--border);
+  color:var(--text2);vertical-align:middle;
+  font-family:var(--f-body);font-size:12px;
+}
+.data-table td.name{
+  font-family:var(--f-mono);font-size:11px;
+  color:var(--text);font-weight:500;
+  white-space:nowrap;
+}
+.data-table td.path{
+  font-family:var(--f-mono);font-size:10px;
+  color:var(--text3);
+}
+.data-table tr:hover td{background:rgba(59,130,246,.04)}
+
+/* Domain cards */
+.domain-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border)}
+.domain-card{
+  background:var(--bgcard);padding:20px;
+  border-left:2px solid transparent;
+  transition:all .2s;cursor:default;
+}
+.domain-card:hover{border-left-color:var(--blue);background:rgba(59,130,246,.04)}
+.domain-num{
+  font-family:var(--f-display);font-size:32px;font-weight:700;
+  color:var(--text);line-height:1;
+}
+.domain-num span{font-size:14px;color:var(--text3);font-weight:400}
+.domain-name{
+  font-family:var(--f-mono);font-size:10px;letter-spacing:.12em;
+  color:var(--blue2);text-transform:uppercase;margin-top:8px;margin-bottom:4px;
+}
+.domain-objects{font-size:11px;color:var(--text3);line-height:1.5}
+
+/* Module cards */
+.module-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--border)}
+.module-card{
+  background:var(--bgcard);padding:20px 16px;
+  display:flex;flex-direction:column;gap:6px;
+  transition:all .2s;border-bottom:2px solid transparent;
+}
+.module-card:hover{background:rgba(59,130,246,.05);border-bottom-color:var(--blue)}
+.module-icon{font-size:18px;margin-bottom:4px}
+.module-name{
+  font-family:var(--f-display);font-size:13px;font-weight:600;
+  color:var(--text);
+}
+.module-tag{
+  font-family:var(--f-mono);font-size:9px;letter-spacing:.1em;
+  color:var(--text3);text-transform:uppercase;
+}
+.module-desc{font-size:11px;color:var(--text2);line-height:1.5;margin-top:4px}
+.tier-label{
+  font-family:var(--f-mono);font-size:9px;letter-spacing:.2em;
+  color:var(--text3);text-transform:uppercase;
+  padding:12px 0 8px;
+  border-bottom:1px solid var(--border);
+  margin-bottom:1px;
+}
+
+/* Arch diagram */
+.arch-layer {
+  border:1px solid var(--border2);background:var(--bgcard);
+  padding:20px 28px;margin-bottom:1px;
+  display:flex;align-items:center;gap:24px;
+  position:relative;
+}
+.arch-layer::before{
+  content:attr(data-label);
+  font-family:var(--f-mono);font-size:9px;letter-spacing:.14em;
+  color:var(--blue);text-transform:uppercase;
+  position:absolute;left:-1px;top:50%;
+  transform:translateY(-50%) translateX(-100%) rotate(-90deg);
+  white-space:nowrap;padding:4px;
+  border-left:1px solid var(--blue);
+}
+.arch-nodes{display:flex;gap:8px;flex-wrap:wrap}
+.arch-node{
+  font-family:var(--f-mono);font-size:10px;
+  color:var(--text2);padding:4px 12px;
+  border:1px solid var(--border);background:var(--bg3);
+  white-space:nowrap;
+}
+.arch-node.highlight{color:var(--blue2);border-color:var(--border2)}
+.arch-arrow{
+  text-align:center;color:var(--text3);
+  font-family:var(--f-mono);font-size:20px;
+  padding:4px 0;letter-spacing:2px;
+}
+
+/* Roadmap */
+.roadmap{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border)}
+.phase-card{background:var(--bgcard);padding:24px 20px}
+.phase-tag{
+  font-family:var(--f-mono);font-size:9px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--text3);margin-bottom:8px;
+}
+.phase-label{
+  font-family:var(--f-display);font-size:18px;font-weight:700;
+  color:var(--text);margin-bottom:4px;
+}
+.phase-weeks{
+  font-family:var(--f-mono);font-size:10px;color:var(--blue);
+  margin-bottom:16px;
+}
+.phase-milestone{
+  font-family:var(--f-mono);font-size:10px;letter-spacing:.08em;
+  color:var(--amber);margin-bottom:12px;
+  border-left:2px solid var(--amber);padding-left:8px;
+}
+.phase-items{list-style:none}
+.phase-items li{
+  font-size:11px;color:var(--text2);padding:4px 0;
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:flex-start;gap:6px;
+}
+.phase-items li::before{content:'→';color:var(--text3);flex-shrink:0}
+
+/* ROI table */
+.roi-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border)}
+.roi-cell{background:var(--bgcard);padding:20px 24px}
+.roi-platform{
+  font-family:var(--f-display);font-size:14px;font-weight:600;
+  color:var(--text);margin-bottom:4px;
+}
+.roi-price{
+  font-family:var(--f-display);font-size:36px;font-weight:700;
+  line-height:1;margin:8px 0;
+}
+.roi-price.expensive{color:var(--red)}
+.roi-price.cheap{color:var(--green)}
+.roi-detail{font-size:12px;color:var(--text2);line-height:1.7}
+
+/* Highlight box */
+.highlight-box{
+  border:1px solid var(--border2);background:rgba(59,130,246,.05);
+  padding:20px 24px;margin-top:24px;
+  border-left:3px solid var(--blue);
+}
+.highlight-box p{font-size:13px;color:var(--text);line-height:1.7}
+
+/* Progress bar */
+.progress-row{
+  display:flex;align-items:center;gap:12px;
+  margin-bottom:10px;
+}
+.progress-label{
+  font-family:var(--f-mono);font-size:10px;color:var(--text2);
+  width:160px;flex-shrink:0;
+}
+.progress-bar{
+  flex:1;height:3px;background:var(--bg3);border-radius:2px;
+  position:relative;overflow:hidden;
+}
+.progress-fill{height:100%;border-radius:2px;animation:grow 1.2s ease-out forwards}
+@keyframes grow{from{width:0}}
+
+/* ─── SIMULATION CARDS ───────────────────────────────── */
+.sim-legend {
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:1px;background:var(--border);margin-bottom:24px;
+}
+.sim-legend-cell {
+  background:var(--bgcard);padding:16px 20px;
+  display:flex;gap:14px;align-items:flex-start;
+}
+.sim-legend-bar {
+  width:3px;flex-shrink:0;height:44px;border-radius:2px;margin-top:3px;
+}
+.sim-legend-title {
+  font-family:var(--f-display);font-size:13px;font-weight:700;
+  color:var(--text);margin-bottom:4px;
+}
+.sim-legend-desc {
+  font-family:var(--f-mono);font-size:9px;letter-spacing:.06em;
+  color:var(--text3);line-height:1.55;
+}
+
+.sim-card {
+  border:1px solid var(--border);background:var(--bgcard);
+  margin-bottom:20px;position:relative;overflow:hidden;
+  border-left-width:4px;
+}
+.sim-card.tier-i { border-left-color:var(--amber) }
+.sim-card.tier-ii { border-left-color:var(--purple) }
+.sim-card.tier-iii { border-left-color:var(--cyan) }
+
+.sim-card-top {
+  display:flex;align-items:center;justify-content:space-between;
+  padding:20px 24px 16px;border-bottom:1px solid var(--border);gap:24px;
+}
+.sim-top-left { display:flex;align-items:center;gap:14px; }
+.sim-tier-badge {
+  font-family:var(--f-mono);font-size:9px;font-weight:700;
+  letter-spacing:.14em;padding:4px 10px;flex-shrink:0;
+  text-transform:uppercase;border:1px solid;
+}
+.tier-i .sim-tier-badge { color:var(--amber);border-color:rgba(251,191,36,.35);background:rgba(251,191,36,.08) }
+.tier-ii .sim-tier-badge { color:var(--purple);border-color:rgba(167,139,250,.35);background:rgba(167,139,250,.08) }
+.tier-iii .sim-tier-badge { color:var(--cyan);border-color:rgba(34,211,238,.35);background:rgba(34,211,238,.08) }
+.sim-card-name {
+  font-family:var(--f-display);font-size:22px;font-weight:700;color:var(--text);
+}
+.sim-stake-block { text-align:right;flex-shrink:0 }
+.sim-stake-label {
+  font-family:var(--f-mono);font-size:9px;letter-spacing:.14em;
+  color:var(--text3);text-transform:uppercase;margin-bottom:4px;
+}
+.sim-stake-num {
+  font-family:var(--f-display);font-size:44px;font-weight:700;line-height:1;
+}
+.tier-i .sim-stake-num { color:var(--amber) }
+.tier-ii .sim-stake-num { color:var(--purple) }
+.tier-iii .sim-stake-num { color:var(--cyan) }
+.sim-stake-sub {
+  font-family:var(--f-mono);font-size:10px;color:var(--text3);
+  letter-spacing:.06em;margin-top:4px;
+}
+
+.sim-trigger-row {
+  padding:10px 24px 14px;border-bottom:1px solid var(--border);
+  font-family:var(--f-mono);font-size:10px;color:var(--text3);letter-spacing:.06em;
+}
+
+.sim-log { padding:20px 24px 0; }
+.sim-step {
+  display:grid;grid-template-columns:72px 18px 1fr;
+  align-items:baseline;margin-bottom:10px;
+  font-family:var(--f-mono);font-size:11px;line-height:1.6;
+}
+.sim-ts { color:var(--text3);letter-spacing:.04em }
+.sim-arrow { color:var(--text3);text-align:center }
+.sim-action { color:var(--text2) }
+.sim-hl { color:var(--blue2);font-weight:500 }
+.sim-hl.green { color:var(--green) }
+.sim-hl.amber { color:var(--amber) }
+.sim-warn { color:var(--red) }
+.sim-caution { color:var(--amber) }
+
+.sim-intel-tag {
+  display:inline-block;font-family:var(--f-mono);font-size:8px;
+  font-weight:700;letter-spacing:.1em;padding:1px 6px;
+  text-transform:uppercase;margin-right:6px;vertical-align:middle;
+}
+.tag-finding { background:rgba(59,130,246,.12);color:var(--blue2) }
+.tag-signal  { background:rgba(251,191,36,.12);color:var(--amber) }
+.tag-alert   { background:rgba(248,113,113,.12);color:var(--red) }
+.tag-verdict { background:rgba(52,211,153,.12);color:var(--green) }
+
+.sim-outcome-bar {
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:1px;background:var(--border);
+  margin:16px 0 0;
+}
+.sim-oc {
+  background:rgba(0,0,0,.4);padding:16px 20px;
+}
+.sim-oc-num {
+  font-family:var(--f-display);font-size:28px;font-weight:700;
+  line-height:1;margin-bottom:4px;
+}
+.tier-i .sim-oc-num { color:var(--amber) }
+.tier-ii .sim-oc-num { color:var(--purple) }
+.tier-iii .sim-oc-num { color:var(--green) }
+.sim-oc-label {
+  font-family:var(--f-mono);font-size:9px;letter-spacing:.1em;
+  color:var(--text3);text-transform:uppercase;
+}
+
+.sim-verdict {
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:1px;background:var(--border);margin-top:1px;
+}
+.sim-v-before,.sim-v-after {
+  padding:14px 24px;font-size:12px;color:var(--text3);
+  line-height:1.65;background:var(--bgcard);
+}
+.sim-v-label {
+  font-family:var(--f-mono);font-size:9px;letter-spacing:.1em;
+  text-transform:uppercase;margin-bottom:6px;display:block;
+}
+.sim-v-before .sim-v-label { color:var(--red) }
+.sim-v-after { color:var(--text2) }
+.sim-v-after .sim-v-label { color:var(--green) }
+
+/* Responsive tweaks */
+@media(max-width:1100px){
+  .stat-grid{grid-template-columns:repeat(2,1fr)}
+  .domain-grid{grid-template-columns:repeat(3,1fr)}
+  .module-grid{grid-template-columns:repeat(3,1fr)}
+  .roadmap{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- INTRO                                                    -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div id="intro">
+  <canvas id="three-canvas"></canvas>
+  <div id="flash"></div>
+  <div id="scan"></div>
+  <div id="intro-ui">
+    <div id="intro-title" aria-label="POLARIS"></div>
+    <p id="intro-sub">Liberty London Enterprise Intelligence Platform</p>
+    <p id="intro-meta">22 DATA SOURCES CONFIRMED &nbsp;·&nbsp; 76 OBJECT TYPES &nbsp;·&nbsp; 12 DOMAINS &nbsp;·&nbsp; MAY 2026</p>
+    <div id="intro-divider"></div>
+    <button id="enter-btn" onclick="enterPlatform()">ENTER PLATFORM</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- MAIN APP                                                 -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div id="app">
+
+  <!-- SIDEBAR -->
+  <nav id="sidebar">
+    <div class="sb-logo">
+      <span class="sb-logo-star">✦</span>
+      <div>
+        <div class="sb-logo-text">POLARIS</div>
+        <div class="sb-logo-sub">Liberty London</div>
+      </div>
+    </div>
+
+    <div class="sb-section">
+      <div class="sb-section-label">Platform</div>
+      <a class="sb-link active" onclick="goTo(0)"><span class="sb-link-dot"></span>Overview</a>
+      <a class="sb-link" onclick="goTo(1)"><span class="sb-link-dot"></span>The Problem</a>
+    </div>
+
+    <div class="sb-section">
+      <div class="sb-section-label">Research</div>
+      <a class="sb-link" onclick="goTo(2)"><span class="sb-link-dot"></span>Data Landscape</a>
+      <a class="sb-link" onclick="goTo(3)"><span class="sb-link-dot"></span>The Ontology</a>
+    </div>
+
+    <div class="sb-section">
+      <div class="sb-section-label">Build</div>
+      <a class="sb-link" onclick="goTo(4)"><span class="sb-link-dot"></span>Platform Modules</a>
+      <a class="sb-link" onclick="goTo(5)"><span class="sb-link-dot"></span>Architecture</a>
+      <a class="sb-link" onclick="goTo(6)"><span class="sb-link-dot"></span>Roadmap</a>
+    </div>
+
+    <div class="sb-section">
+      <div class="sb-section-label">In Action</div>
+      <a class="sb-link" onclick="goTo(7)"><span class="sb-link-dot"></span>Simulations</a>
+    </div>
+
+    <div class="sb-status">
+      <div class="sb-status-line"><span class="sb-status-dot"></span>Research Complete</div>
+      <div class="sb-status-line mono muted" style="margin-top:4px">v2.0 — May 2026</div>
+    </div>
+  </nav>
+
+  <!-- CONTENT -->
+  <div id="content">
+
+    <!-- ── S0: OVERVIEW ──────────────────────────────────── -->
+    <section class="section" id="s0">
+      <div class="section-eyebrow">Project Overview</div>
+      <h1 class="section-title">The North Star.<br>Liberty navigates by it.</h1>
+      <p class="section-sub">
+        Polaris is a Palantir Foundry-inspired enterprise intelligence platform built for Liberty London —
+        a three-layer operating system that connects every system Liberty runs, encodes the business as
+        a live semantic graph, and grounds AI-driven decisions in the complete picture of the company.
+      </p>
+
+      <div class="stat-grid" style="margin-bottom:32px">
+        <div class="stat-item">
+          <div class="stat-num">76<span> types</span></div>
+          <div class="stat-label">Ontology Objects</div>
+          <div class="stat-sub">12 business domains</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num">22<span>+</span></div>
+          <div class="stat-label">Data Sources</div>
+          <div class="stat-sub">All confirmed in Liberty's data lake (ADLS) today</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num">10</div>
+          <div class="stat-label">Platform Modules</div>
+          <div class="stat-sub">From Studio to Executive</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num">34<span>wk</span></div>
+          <div class="stat-label">Full Platform</div>
+          <div class="stat-sub">Phase 1 live at Week 12</div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--border)">
+        <div class="card" style="border:none;border-radius:0">
+          <div class="section-eyebrow" style="margin-bottom:8px">Layer I</div>
+          <div style="font-family:var(--f-display);font-size:16px;font-weight:600;margin-bottom:6px">Ontology Engine</div>
+          <div style="font-size:12px;color:var(--text2);line-height:1.6">76 typed objects — Customer, Style, Supplier, Order, PurchaseOrder — with computed properties, link traversal, and action writeback. The world model of Liberty encoded in machine-readable form.</div>
+        </div>
+        <div class="card" style="border:none;border-radius:0;border-left:1px solid var(--border)">
+          <div class="section-eyebrow" style="margin-bottom:8px">Layer II</div>
+          <div style="font-family:var(--f-display);font-size:16px;font-weight:600;margin-bottom:6px">Integration Membrane</div>
+          <div style="font-size:12px;color:var(--text2);line-height:1.6">Every new integration lands in the ontology, not a spreadsheet. 8-week connectors that arrive connected to Customer, Style, Channel, and EBITDA — not isolated from them.</div>
+        </div>
+        <div class="card" style="border:none;border-radius:0;border-left:1px solid var(--border)">
+          <div class="section-eyebrow" style="margin-bottom:8px">Layer III</div>
+          <div style="font-family:var(--f-display);font-size:16px;font-weight:600;margin-bottom:6px">Intelligence Layer</div>
+          <div style="font-size:12px;color:var(--text2);line-height:1.6">AI grounded in live ontology objects — not documents. Claude reasons over the actual Supplier, the actual Style, the actual EBITDA position, with full context and full history.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── S1: THE PROBLEM ───────────────────────────────── -->
+    <section class="section" id="s1">
+      <div class="section-eyebrow">The Intelligence Gap</div>
+      <h2 class="section-title">Seven systems. No shared vocabulary.</h2>
+      <p class="section-sub">
+        Liberty generates substantial intelligence every day. It cannot assemble that intelligence into decisions.
+        A buying director cannot see, in a single view, which styles are underperforming, which suppliers
+        are creating risk, and how much OTB remains to course-correct. The answer lives across five systems.
+        Reconciliation takes days. The window for action closes in hours.
+      </p>
+
+      <div style="display:grid;grid-template-columns:1fr 40px 1fr;align-items:center;gap:0">
+        <!-- CURRENT STATE -->
+        <div>
+          <div class="tier-label" style="border:none;padding-bottom:16px">Current State — Fragmented</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <div style="border:1px solid rgba(248,113,113,.2);background:rgba(248,113,113,.04);padding:14px 16px;border-radius:2px">
+              <div style="font-family:var(--f-mono);font-size:10px;color:var(--red);letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px">M3 / Toria ERP</div>
+              <div style="font-size:11px;color:var(--text3)">PO status, inventory, OTB</div>
+            </div>
+            <div style="border:1px solid rgba(248,113,113,.2);background:rgba(248,113,113,.04);padding:14px 16px;border-radius:2px">
+              <div style="font-family:var(--f-mono);font-size:10px;color:var(--red);letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px">SFCC</div>
+              <div style="font-size:11px;color:var(--text3)">E-commerce, orders, catalogue</div>
+            </div>
+            <div style="border:1px solid rgba(248,113,113,.2);background:rgba(248,113,113,.04);padding:14px 16px;border-radius:2px">
+              <div style="font-family:var(--f-mono);font-size:10px;color:var(--red);letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px">Aptos POS</div>
+              <div style="font-size:11px;color:var(--text3)">In-store transactions</div>
+            </div>
+            <div style="border:1px solid rgba(248,113,113,.2);background:rgba(248,113,113,.04);padding:14px 16px;border-radius:2px">
+              <div style="font-family:var(--f-mono);font-size:10px;color:var(--red);letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px">Willow / Power BI</div>
+              <div style="font-size:11px;color:var(--text3)">Observational only, stale</div>
+            </div>
+            <div style="border:1px solid rgba(248,113,113,.2);background:rgba(248,113,113,.04);padding:14px 16px;border-radius:2px">
+              <div style="font-family:var(--f-mono);font-size:10px;color:var(--red);letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px">AX / D365</div>
+              <div style="font-size:11px;color:var(--text3)">Financial, POS legacy</div>
+            </div>
+            <div style="border:1px solid rgba(248,113,113,.2);background:rgba(248,113,113,.04);padding:14px 16px;border-radius:2px">
+              <div style="font-family:var(--f-mono);font-size:10px;color:var(--red);letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px">Excel / Spreadsheets</div>
+              <div style="font-size:11px;color:var(--text3)">OTB, markdown, buying plans</div>
+            </div>
+          </div>
+          <div style="margin-top:12px;padding:12px 16px;border:1px solid rgba(248,113,113,.2);background:rgba(248,113,113,.04)">
+            <div style="font-size:11px;color:var(--text2);line-height:1.6"><span style="color:var(--red)">Decision latency:</span> 5–7 days from sell-through flag to markdown decision. Window for action closes in hours.</div>
+          </div>
+        </div>
+
+        <!-- ARROW -->
+        <div style="text-align:center;color:var(--blue);font-size:24px;padding:0 8px">→</div>
+
+        <!-- WITH POLARIS -->
+        <div>
+          <div class="tier-label" style="border:none;padding-bottom:16px">With Polaris — Connected</div>
+          <div style="border:1px solid rgba(52,211,153,.2);background:rgba(52,211,153,.04);padding:24px;border-radius:2px;text-align:center;margin-bottom:8px">
+            <div style="font-family:var(--f-display);font-size:20px;font-weight:700;color:var(--green);margin-bottom:8px">✦ POLARIS ONTOLOGY</div>
+            <div style="font-size:11px;color:var(--text3);line-height:1.6">76 typed objects<br>live semantic graph<br>AI-grounded decisions</div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;font-family:var(--f-mono);font-size:10px;color:var(--green);text-align:center">
+            <div style="border:1px solid rgba(52,211,153,.2);padding:10px;background:rgba(52,211,153,.04)">Customer ↔ Order</div>
+            <div style="border:1px solid rgba(52,211,153,.2);padding:10px;background:rgba(52,211,153,.04)">Style ↔ Supplier</div>
+            <div style="border:1px solid rgba(52,211,153,.2);padding:10px;background:rgba(52,211,153,.04)">EBITDA ↔ Channel</div>
+          </div>
+          <div style="margin-top:12px;padding:12px 16px;border:1px solid rgba(52,211,153,.2);background:rgba(52,211,153,.04)">
+            <div style="font-size:11px;color:var(--text2);line-height:1.6"><span style="color:var(--green)">Decision velocity:</span> &lt;2 days alert-to-action. Monday morning CEO brief generated automatically.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── S2: DATA LANDSCAPE ────────────────────────────── -->
+    <section class="section" id="s2" style="padding-top:48px">
+      <div class="section-eyebrow">Data Audit (ADLS) — May 2026</div>
+      <h2 class="section-title">22 confirmed data sources.<br>Already in Liberty's data lake. Today.</h2>
+      <p class="section-sub" style="margin-bottom:24px">
+        Direct inspection of Liberty's cloud data lake (internal name: <span class="mono blue">adlswillowdev</span>). Willow is not "budget data". It is a full data pipeline platform (ETL) built by Transparity with 20+ live connectors already feeding it. The data exists. Polaris connects it.
+      </p>
+
+      <div style="border:1px solid var(--border);overflow:auto;max-height:520px">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>System</th>
+              <th>Storage path (ADLS)</th>
+              <th>Status</th>
+              <th>Key Data</th>
+              <th>Polaris Objects</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td class="name">M3 / Toria ERP</td><td class="path">afls-quickstrike/ · afls-landing/1_landing_avro/m3/</td><td><span class="badge live">Live</span></td><td>52 warehouses, OTB, PO lines</td><td class="mono" style="font-size:10px">PurchaseOrder, Inventory, Supplier</td></tr>
+            <tr><td class="name">AX / D365</td><td class="path">afls-landing/1_landing_avro/dynamicsax/ (60+ tables)</td><td><span class="badge live">Live</span></td><td>InventTable (253 cols), CustTable, VendTable</td><td class="mono" style="font-size:10px">Product, Customer, Supplier</td></tr>
+            <tr><td class="name">Aptos POS</td><td class="path">afls-delta/raw_delta/pos/ · raw_delta/aptos/</td><td><span class="badge live">Live</span></td><td>1,244,429 transactions (RETAIL_TRANSACTION)</td><td class="mono" style="font-size:10px">POSTransaction, Channel</td></tr>
+            <tr><td class="name">Aptos CRM</td><td class="path">afls-delta/raw_delta/aptos/crm/</td><td><span class="badge live">Live</span></td><td>Customer profiles, loyalty data</td><td class="mono" style="font-size:10px">Customer, LoyaltyAccount</td></tr>
+            <tr><td class="name">GA4</td><td class="path">afls-delta/raw_delta/ga4/</td><td><span class="badge live">Live</span></td><td>6,055,168 events — full attribution, Algolia q_algq</td><td class="mono" style="font-size:10px">WebSession, MarketingAttribution</td></tr>
+            <tr><td class="name">Global-e</td><td class="path">afls-delta/raw_delta/globale/ · 1_landing_avro/globale/</td><td><span class="badge live">Live</span></td><td>International orders, cross-border fulfilment</td><td class="mono" style="font-size:10px">InternationalOrder, CrossBorderShipment</td></tr>
+            <tr><td class="name">Oracle Responsys</td><td class="path">afls-delta/raw_delta/responsys/sftp/</td><td><span class="badge live">Live</span></td><td>Email campaigns, engagement data</td><td class="mono" style="font-size:10px">EmailCampaign, EmailEngagement</td></tr>
+            <tr><td class="name">FootFallCam</td><td class="path">afls-delta/raw_delta/footfallcam/</td><td><span class="badge live">Live</span></td><td>7 camera zones — Liberty flagship</td><td class="mono" style="font-size:10px">FootfallRecord, FootfallZone</td></tr>
+            <tr><td class="name">OMS (Order Mgmt)</td><td class="path">afls-landing/1_landing_avro/oms/ (25 tables)</td><td><span class="badge live">Live</span></td><td>OrderHeader, CarrierConsignment, Invoice, PBL</td><td class="mono" style="font-size:10px">FulfillmentOrder, Shipment</td></tr>
+            <tr><td class="name">Retail WMS</td><td class="path">afls-landing/1_landing_avro/wms/ (19 tables)</td><td><span class="badge live">Live</span></td><td>WMSWarehouse, WMSASN, WMSGoodsIn, WMSPick</td><td class="mono" style="font-size:10px">InboundShipment, PickTask</td></tr>
+            <tr><td class="name">Meta Ads</td><td class="path">afls-delta/raw_delta/meta/</td><td><span class="badge live">Live</span></td><td>Campaign spend, impressions, conversions</td><td class="mono" style="font-size:10px">AdCampaign, AdSpend</td></tr>
+            <tr><td class="name">Google Ads</td><td class="path">afls-delta/raw_delta/google/</td><td><span class="badge live">Live</span></td><td>Search + display campaigns</td><td class="mono" style="font-size:10px">AdCampaign, AdSpend</td></tr>
+            <tr><td class="name">TikTok Ads</td><td class="path">afls-delta/raw_delta/tiktok/</td><td><span class="badge live">Live</span></td><td>Social ad spend &amp; performance</td><td class="mono" style="font-size:10px">AdCampaign, AdSpend</td></tr>
+            <tr><td class="name">Rakuten</td><td class="path">afls-delta/raw_delta/rakuten/</td><td><span class="badge live">Live</span></td><td>Affiliate partner orders &amp; commissions</td><td class="mono" style="font-size:10px">AffiliatePartner, ChannelROAS</td></tr>
+            <tr><td class="name">Partnerize</td><td class="path">afls-delta/raw_delta/partnerize/</td><td><span class="badge live">Live</span></td><td>Affiliate partner data</td><td class="mono" style="font-size:10px">AffiliatePartner</td></tr>
+            <tr><td class="name">Microsoft Ads</td><td class="path">afls-delta/raw_delta/microsoftadvertising/</td><td><span class="badge live">Live</span></td><td>Bing/MSFT paid media</td><td class="mono" style="font-size:10px">AdCampaign, AdSpend</td></tr>
+            <tr><td class="name">BazaarVoice</td><td class="path">afls-delta/raw_delta/bazaarvoice/</td><td><span class="badge live">Live</span></td><td>Product reviews &amp; ratings</td><td class="mono" style="font-size:10px">ProductReview</td></tr>
+            <tr><td class="name">ChargeBee</td><td class="path">afls-delta/raw_delta/chargebee/</td><td><span class="badge live">Live</span></td><td>Subscription billing data</td><td class="mono" style="font-size:10px">Subscription</td></tr>
+            <tr><td class="name">Salesforce</td><td class="path">afls-delta/raw_delta/salesforce/</td><td><span class="badge live">Live</span></td><td>CRM / Marketing Cloud / Commerce (TBC)</td><td class="mono" style="font-size:10px">Contact, Campaign</td></tr>
+            <tr><td class="name">SharePoint</td><td class="path">afls-delta/raw_delta/sharepoint/</td><td><span class="badge live">Live</span></td><td>Budget docs, buying plans, trading docs</td><td class="mono" style="font-size:10px">Budget, BuyingPlan</td></tr>
+            <tr><td class="name">Sub2</td><td class="path">afls-delta/raw_delta/sub2/</td><td><span class="badge tbc">Identity TBC</span></td><td>Subscription platform?</td><td class="mono" style="font-size:10px">TBC</td></tr>
+            <tr><td class="name">MNP</td><td class="path">afls-delta/raw_delta/mnp/</td><td><span class="badge tbc">Identity TBC</span></td><td>Media / network partner?</td><td class="mono" style="font-size:10px">TBC</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="highlight-box" style="margin-top:16px;display:flex;align-items:center;gap:24px">
+        <div style="font-family:var(--f-display);font-size:32px;font-weight:700;color:var(--green);flex-shrink:0">KEY FINDING</div>
+        <p>The data is already there. Polaris does not require Liberty to build new connectors for the first 20 sources — they already flow into Liberty's data lake (ADLS) today. The task is connecting it with meaning, not collecting it. <span style="color:var(--blue2)">We connect what already exists.</span></p>
+      </div>
+    </section>
+
+    <!-- ── S3: ONTOLOGY ──────────────────────────────────── -->
+    <section class="section" id="s3">
+      <div class="section-eyebrow">Liberty Ontology v2 — May 2026</div>
+      <h2 class="section-title">76 object types.<br>The world model of Liberty.</h2>
+      <p class="section-sub">
+        The ontology encodes not just data but <em>meaning</em> — the institutional knowledge of a 150-year-old brand, made computable.
+        Once encoded, it becomes the most valuable asset Liberty owns.
+      </p>
+
+      <div class="domain-grid" style="margin-bottom:24px">
+        <div class="domain-card"><div class="domain-num">10</div><div class="domain-name">Commercial</div><div class="domain-objects">Customer · Order · POSTransaction · InternationalOrder · Product · Style · Channel · CrossBorderShipment · GiftCard · WishlistItem</div></div>
+        <div class="domain-card"><div class="domain-num">9</div><div class="domain-name">Product &amp; Creative</div><div class="domain-objects">Collection · Season · Print · Artwork · CreativeROI · StyleVariant · DemandForecast · MarkdownEvent · StylePerformance</div></div>
+        <div class="domain-card"><div class="domain-num">10</div><div class="domain-name">Supply Chain</div><div class="domain-objects">Supplier · PurchaseOrder · Inventory · Shipment · QualityInspection · InboundShipment · StockReservation · PickTask · ReturnItem · SupplierIncident</div></div>
+        <div class="domain-card"><div class="domain-num">8</div><div class="domain-name">Financial</div><div class="domain-objects">EBITDA · GrossMargin · Budget · Actuals · Forecast · CostCentre · MarkdownBudget · Royalty</div></div>
+        <div class="domain-card"><div class="domain-num">5</div><div class="domain-name">People &amp; Org</div><div class="domain-objects">Employee · Team · Organisation · ExternalContact · ClientAdvisor</div></div>
+        <div class="domain-card"><div class="domain-num">5</div><div class="domain-name">Real Estate</div><div class="domain-objects">Store · StoreZone · FootfallZone · FootfallRecord · Lease</div></div>
+        <div class="domain-card"><div class="domain-num">4</div><div class="domain-name">Technology</div><div class="domain-objects">DataSource · Integration · DataQualityIssue · APIUsageEvent</div></div>
+        <div class="domain-card"><div class="domain-num">8</div><div class="domain-name">Operations</div><div class="domain-objects">Alert · Decision · Recommendation · OperationalTask · Workflow · OTB · BuyingPlan · SellThrough</div></div>
+        <div class="domain-card"><div class="domain-num">8</div><div class="domain-name">Customer Intelligence</div><div class="domain-objects">WebSession · SearchQuery · ChurnRisk · LoyaltyAccount · CustomerSegment · NextBestAction · BrowseSession · MarketingConsent</div></div>
+        <div class="domain-card"><div class="domain-num">5</div><div class="domain-name">Buying &amp; Merch</div><div class="domain-objects">OTB · BuyingPlan · SellThrough · MarkdownEvent · AllocationPlan</div></div>
+        <div class="domain-card"><div class="domain-num">7</div><div class="domain-name">Marketing &amp; Media</div><div class="domain-objects">MarketingAttribution · EmailCampaign · EmailEngagement · AdCampaign · AdSpend · AffiliatePartner · ChannelROAS</div></div>
+        <div class="domain-card"><div class="domain-num">7</div><div class="domain-name">Commerce Infra</div><div class="domain-objects">ProductReview · Subscription · FulfillmentOrder · RetailWMSEvent · CrossBorderShipment · GiftCard · PickTask</div></div>
+      </div>
+
+      <div style="display:flex;gap:24px;align-items:center">
+        <div style="border:1px solid var(--border2);padding:20px 28px;text-align:center">
+          <div style="font-family:var(--f-display);font-size:56px;font-weight:700;color:var(--text);line-height:1">76</div>
+          <div style="font-family:var(--f-mono);font-size:10px;letter-spacing:.14em;color:var(--blue);text-transform:uppercase">Object Types</div>
+        </div>
+        <div style="border:1px solid var(--border2);padding:20px 28px;text-align:center">
+          <div style="font-family:var(--f-display);font-size:56px;font-weight:700;color:var(--text);line-height:1">12</div>
+          <div style="font-family:var(--f-mono);font-size:10px;letter-spacing:.14em;color:var(--blue);text-transform:uppercase">Domains</div>
+        </div>
+        <div style="flex:1;padding:0 24px">
+          <div style="font-size:13px;color:var(--text2);line-height:1.8">
+            <div style="margin-bottom:6px">→ <span style="color:var(--text)">Supersedes v1</span> (47 types, 10 domains) — expanded after the full data audit (ADLS)</div>
+            <div style="margin-bottom:6px">→ <span style="color:var(--text)">22 new types</span> from confirmed data sources: POSTransaction, InternationalOrder, FootfallZone, EmailCampaign, AdCampaign, MarketingAttribution, ProductReview, Subscription, FulfillmentOrder…</div>
+            <div>→ <span style="color:var(--text)">2 new domains</span>: Domain 11 (Marketing &amp; Media), Domain 12 (Commerce Infrastructure)</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── S4: MODULES ───────────────────────────────────── -->
+    <section class="section" id="s4">
+      <div class="section-eyebrow">Platform Architecture</div>
+      <h2 class="section-title">10 modules. One ontology.<br>Zero data silos.</h2>
+      <p class="section-sub">
+        Every module reads from and writes to the same Polaris Ontology. No module stores its own data.
+        Build once, reason everywhere.
+      </p>
+
+      <div class="tier-label">FOUNDATION TIER — must exist before anything else works</div>
+      <div class="module-grid" style="grid-template-columns:repeat(2,1fr);margin-bottom:1px">
+        <div class="module-card">
+          <div class="module-icon">⬡</div>
+          <div class="module-name">Polaris Studio</div>
+          <div class="module-tag">Ontology Builder</div>
+          <div class="module-desc">Define object types, configure data pipelines, govern the semantic layer. The command centre for Polaris itself.</div>
+        </div>
+        <div class="module-card">
+          <div class="module-icon">⇄</div>
+          <div class="module-name">Polaris Connect</div>
+          <div class="module-tag">Integration Membrane</div>
+          <div class="module-desc">Every integration lands in the ontology. Connector wizard, schema mapper, conflict resolver, event bus monitor.</div>
+        </div>
+      </div>
+
+      <div class="tier-label" style="margin-top:16px">INTELLIGENCE TIER — operational intelligence on top of the ontology</div>
+      <div class="module-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:1px">
+        <div class="module-card">
+          <div class="module-icon">◎</div>
+          <div class="module-name">Polaris Explore</div>
+          <div class="module-tag">Self-Service Analytics</div>
+          <div class="module-desc">Browse any object type, traverse relationships, run natural language queries. No SQL required.</div>
+        </div>
+        <div class="module-card">
+          <div class="module-icon">◻</div>
+          <div class="module-name">Polaris Workshop</div>
+          <div class="module-tag">No-Code App Builder</div>
+          <div class="module-desc">Drag-and-drop application builder. Supplier portal, markdown app, CEO hub — built on the ontology.</div>
+        </div>
+        <div class="module-card">
+          <div class="module-icon">✦</div>
+          <div class="module-name">Polaris Intelligence</div>
+          <div class="module-tag">AI Agent Runtime</div>
+          <div class="module-desc">Claude-powered agents grounded in live ontology objects. Not text RAG. Structured semantic context.</div>
+        </div>
+      </div>
+
+      <div class="tier-label" style="margin-top:16px">DOMAIN TIER — purpose-built vertical modules</div>
+      <div class="module-grid" style="grid-template-columns:repeat(5,1fr)">
+        <div class="module-card">
+          <div class="module-icon">📊</div>
+          <div class="module-name">Polaris Buying</div>
+          <div class="module-tag">Sell-Through + Markdown</div>
+          <div class="module-desc">Season dashboard, AI markdown recommendations, OTB tracker, demand forecast.</div>
+        </div>
+        <div class="module-card">
+          <div class="module-icon">◉</div>
+          <div class="module-name">Polaris Customer</div>
+          <div class="module-tag">360° Intelligence</div>
+          <div class="module-desc">Customer 360, cohort builder, churn prediction, LTV model, next-best-action.</div>
+        </div>
+        <div class="module-card">
+          <div class="module-icon">⬡</div>
+          <div class="module-name">Polaris Ops</div>
+          <div class="module-tag">Supply Chain Control</div>
+          <div class="module-desc">PO management, supplier performance, inventory health, automated workflows.</div>
+        </div>
+        <div class="module-card">
+          <div class="module-icon">▲</div>
+          <div class="module-name">Polaris Executive</div>
+          <div class="module-tag">CEO / CFO / CMO</div>
+          <div class="module-desc">Live KPI dashboards, Monday morning AI briefing, automated board pack.</div>
+        </div>
+        <div class="module-card">
+          <div class="module-icon">&lt;/&gt;</div>
+          <div class="module-name">Polaris Developer</div>
+          <div class="module-tag">API + SDK</div>
+          <div class="module-desc">REST + GraphQL API, Python/TypeScript SDK, webhook subscriptions, marketplace.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── S5: ARCHITECTURE ──────────────────────────────── -->
+    <section class="section" id="s5">
+      <div class="section-eyebrow">Technical Architecture</div>
+      <h2 class="section-title">Built on Liberty's<br>existing Azure infrastructure.</h2>
+      <p class="section-sub">
+        Built on Liberty's existing cloud storage (Delta Lake on <span class="mono blue">adlswillowdev</span>),
+        an embedded query engine (DuckDB) that answers in under 500ms, and Liberty corporate single sign-on (Azure AD SSO).
+        No new infrastructure spend beyond what Liberty already operates.
+      </p>
+
+      <div style="padding-left:40px">
+        <div class="arch-layer" data-label="SOURCES">
+          <div class="arch-nodes">
+            <span class="arch-node">M3/Toria</span><span class="arch-node">AX/D365</span><span class="arch-node">Aptos POS</span><span class="arch-node">Global-e</span><span class="arch-node">GA4</span><span class="arch-node">Responsys</span><span class="arch-node">FootFallCam</span><span class="arch-node">OMS</span><span class="arch-node">Retail WMS</span><span class="arch-node">+ 13 more</span>
+          </div>
+        </div>
+        <div class="arch-arrow">↕ CONNECTOR LAYER — Polaris Connect (Azure Functions · Event Bus)</div>
+        <div class="arch-layer" data-label="DATA LAKE">
+          <div class="arch-nodes">
+            <span class="arch-node highlight">Cloud data lake (Delta Lake · ADLS) — adlswillowdev</span>
+            <span class="arch-node">Raw (Bronze)</span>
+            <span class="arch-node">Cleaned (Silver)</span>
+            <span class="arch-node">Business-ready (Gold)</span>
+            <span class="arch-node highlight">Data transforms (dbt)</span>
+            <span class="arch-node highlight">Embedded query engine (DuckDB)</span>
+          </div>
+        </div>
+        <div class="arch-arrow">↕ OBJECT PIPELINE</div>
+        <div class="arch-layer" data-label="ONTOLOGY">
+          <div class="arch-nodes">
+            <span class="arch-node highlight">Object store (OMS) — 76 business types · 12 domains</span>
+            <span class="arch-node">Object Sets</span>
+            <span class="arch-node">Link Service</span>
+            <span class="arch-node">Action Service</span>
+            <span class="arch-node">Function Service</span>
+            <span class="arch-node highlight">API server (FastAPI + GraphQL)</span>
+            <span class="arch-node">Query cache (Redis)</span>
+          </div>
+        </div>
+        <div class="arch-arrow">↕ PLATFORM API — Liberty single sign-on (Azure AD SSO)</div>
+        <div class="arch-layer" data-label="APP">
+          <div class="arch-nodes">
+            <span class="arch-node highlight">Studio · Connect · Explore · Workshop</span>
+            <span class="arch-node highlight">AI Intelligence (Claude Sonnet 4.6)</span>
+            <span class="arch-node highlight">Buying · Customer · Ops · Executive</span>
+            <span class="arch-node">Web app (Next.js 15)</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);margin-top:24px">
+        <div class="stat-item" style="padding:16px 20px">
+          <div style="font-family:var(--f-mono);font-size:10px;color:var(--text3);margin-bottom:4px;letter-spacing:.1em;text-transform:uppercase">AI Model</div>
+          <div style="font-family:var(--f-display);font-size:14px;font-weight:600">Claude Sonnet 4.6</div>
+          <div style="font-size:11px;color:var(--text3)">Grounded in ontology objects</div>
+        </div>
+        <div class="stat-item" style="padding:16px 20px">
+          <div style="font-family:var(--f-mono);font-size:10px;color:var(--text3);margin-bottom:4px;letter-spacing:.1em;text-transform:uppercase">Query Engine</div>
+          <div style="font-family:var(--f-display);font-size:14px;font-weight:600">DuckDB Embedded</div>
+          <div style="font-size:11px;color:var(--text3)">&lt;500ms on 10M+ rows</div>
+        </div>
+        <div class="stat-item" style="padding:16px 20px">
+          <div style="font-family:var(--f-mono);font-size:10px;color:var(--text3);margin-bottom:4px;letter-spacing:.1em;text-transform:uppercase">Storage</div>
+          <div style="font-family:var(--f-display);font-size:14px;font-weight:600">Cloud data lake (Delta Lake / ADLS)</div>
+          <div style="font-size:11px;color:var(--text3)">Already exists at Liberty</div>
+        </div>
+        <div class="stat-item" style="padding:16px 20px">
+          <div style="font-family:var(--f-mono);font-size:10px;color:var(--text3);margin-bottom:4px;letter-spacing:.1em;text-transform:uppercase">Auth</div>
+          <div style="font-family:var(--f-display);font-size:14px;font-weight:600">Azure AD SSO</div>
+          <div style="font-size:11px;color:var(--text3)">Liberty corporate accounts</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── S6: ROADMAP ───────────────────────────────────── -->
+    <section class="section" id="s6">
+      <div class="section-eyebrow">Build Roadmap</div>
+      <h2 class="section-title">34 weeks to full platform.<br>First value at Week 12.</h2>
+      <p class="section-sub">
+        Build vertically, not horizontally. Phase 1 ends with something real Liberty users rely on daily —
+        before Phase 2 investment is committed.
+      </p>
+
+      <div class="roadmap" style="margin-bottom:24px">
+        <div class="phase-card" style="border-top:2px solid var(--text3)">
+          <div class="phase-tag">Phase 0 · Weeks 1–4</div>
+          <div class="phase-label">Foundation</div>
+          <div class="phase-weeks">4 weeks</div>
+          <div class="phase-milestone">Infrastructure live</div>
+          <ul class="phase-items">
+            <li>Cloud data lake (Azure ADLS + Delta Lake) provisioned</li>
+            <li>API server (FastAPI) scaffolded</li>
+            <li>Next.js frontend deployed</li>
+            <li>Willow Synapse connector live</li>
+            <li>First object type: <span class="mono">Style</span></li>
+          </ul>
+        </div>
+        <div class="phase-card" style="border-top:2px solid var(--blue)">
+          <div class="phase-tag">Phase 1 · Weeks 5–12</div>
+          <div class="phase-label">First Value</div>
+          <div class="phase-weeks">8 weeks</div>
+          <div class="phase-milestone">CEO Dashboard live</div>
+          <ul class="phase-items">
+            <li>17 Phase 1 object types live</li>
+            <li>Aptos POS + Global-e Day 1</li>
+            <li>Sell-through dashboard</li>
+            <li>CEO AI morning briefing</li>
+            <li>Markdown alert service</li>
+            <li>Slack integration</li>
+          </ul>
+        </div>
+        <div class="phase-card" style="border-top:2px solid var(--cyan)">
+          <div class="phase-tag">Phase 2 · Weeks 13–22</div>
+          <div class="phase-label">Intelligence</div>
+          <div class="phase-weeks">10 weeks</div>
+          <div class="phase-milestone">AI Recommendations live</div>
+          <ul class="phase-items">
+            <li>AI markdown recommendations</li>
+            <li>Customer 360 + churn model</li>
+            <li>Supplier risk intelligence</li>
+            <li>Full OTB tracker</li>
+            <li>Board pack generator</li>
+            <li>Workshop app builder</li>
+          </ul>
+        </div>
+        <div class="phase-card" style="border-top:2px solid var(--green)">
+          <div class="phase-tag">Phase 3 · Weeks 23–34</div>
+          <div class="phase-label">Platform</div>
+          <div class="phase-weeks">12 weeks</div>
+          <div class="phase-milestone">All 76 objects · All 10 modules</div>
+          <ul class="phase-items">
+            <li>All 76 object types live</li>
+            <li>Integration Membrane proof</li>
+            <li>External API + SDK</li>
+            <li>Security audit</li>
+            <li>Full SFCC writeback</li>
+            <li>Load tested 200 users</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="highlight-box" style="display:flex;align-items:center;gap:40px">
+        <div style="text-align:center;flex-shrink:0">
+          <div style="font-family:var(--f-display);font-size:48px;font-weight:700;color:var(--blue);line-height:1">Wk 12</div>
+          <div style="font-family:var(--f-mono);font-size:10px;letter-spacing:.12em;color:var(--text3);text-transform:uppercase;margin-top:4px">Phase 1 Milestone</div>
+        </div>
+        <div>
+          <div style="font-family:var(--f-display);font-size:16px;font-weight:600;margin-bottom:6px">Phase 1 is the proof. Phase 2 is the ROI. Phase 3 is the moat.</div>
+          <div style="font-size:13px;color:var(--text2);line-height:1.7">By Week 12: CEO receives daily AI brief at 07:00. Buyers see every AW25 style's sell-through, RAG status, and projected season-end sell-through in a single view. Finance-verified KPIs on a live dashboard. The decision to continue to Phase 2 is evidence-based, not a leap of faith.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── S7: SIMULATIONS ───────────────────────────────── -->
+    <section class="section" id="s7">
+      <div class="section-eyebrow">Platform in Action — 6 Simulations</div>
+      <h2 class="section-title">The decisions that compound.</h2>
+      <p class="section-sub">
+        Not dashboards. Not reports. Six decisions — each one invisible without Polaris, each one worth multiples of what this platform costs to build. Real Liberty data. Real money. A clock on every one of them.
+      </p>
+
+      <!-- RANKING LEGEND -->
+      <div class="sim-legend">
+        <div class="sim-legend-cell">
+          <div class="sim-legend-bar" style="background:var(--amber)"></div>
+          <div>
+            <div class="sim-legend-title">TIER I — STRATEGIC</div>
+            <div class="sim-legend-desc">Season-defining. Board-level. £multi-million at stake. The decisions that set the trajectory of the entire year.</div>
+          </div>
+        </div>
+        <div class="sim-legend-cell">
+          <div class="sim-legend-bar" style="background:var(--purple)"></div>
+          <div>
+            <div class="sim-legend-title">TIER II — ENTERPRISE</div>
+            <div class="sim-legend-desc">Cross-functional. High-leverage. Weeks to act before the window closes. The decisions that separate good seasons from great ones.</div>
+          </div>
+        </div>
+        <div class="sim-legend-cell">
+          <div class="sim-legend-bar" style="background:var(--cyan)"></div>
+          <div>
+            <div class="sim-legend-title">TIER III — OPERATIONAL</div>
+            <div class="sim-legend-desc">Daily intelligence. Precision actions. Always running. The compounding cadence that makes every other tier possible.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SIM 01 ─────────────────────────────────────────── -->
+      <div class="sim-card tier-i">
+        <div class="sim-card-top">
+          <div class="sim-top-left">
+            <div class="sim-tier-badge">TIER I — STRATEGIC</div>
+            <div class="sim-card-name">The Season Rewired</div>
+          </div>
+          <div class="sim-stake-block">
+            <div class="sim-stake-label">Decision at stake</div>
+            <div class="sim-stake-num">£40M</div>
+            <div class="sim-stake-sub">AW26 buying commitment · before a single order is placed</div>
+          </div>
+        </div>
+        <div class="sim-trigger-row">Trigger: 12 weeks before the buying window opens — Polaris runs the full season simulation</div>
+        <div class="sim-log">
+          <div class="sim-step"><span class="sim-ts">INGEST</span><span class="sim-arrow">▸</span><span class="sim-action">3 seasons sell-through data processed across <span class="sim-hl">1,400 styles</span> — every category, every channel, every week</span></div>
+          <div class="sim-step"><span class="sim-ts">ANALYSE</span><span class="sim-arrow">▸</span><span class="sim-action"><span class="sim-intel-tag tag-finding">FINDING</span>4 categories overbought by avg <span class="sim-caution">22%</span> vs trailing 3-season sell-through trend</span></div>
+          <div class="sim-step"><span class="sim-ts">ANALYSE</span><span class="sim-arrow">▸</span><span class="sim-action"><span class="sim-intel-tag tag-finding">FINDING</span>Outerwear + tailoring undersized — fastest-moving styles sold out avg <span class="sim-caution">4.2 weeks vs 8-week target</span></span></div>
+          <div class="sim-step"><span class="sim-ts">ANALYSE</span><span class="sim-arrow">▸</span><span class="sim-action"><span class="sim-intel-tag tag-finding">FINDING</span>Accessories: 6 styles carried for brand reasons show <span class="sim-warn">zero repeat purchase driver</span> over 3 seasons</span></div>
+          <div class="sim-step"><span class="sim-ts">RECOMMEND</span><span class="sim-arrow">▸</span><span class="sim-action">Reallocation: <span class="sim-hl amber">£4.2M shifted from slow basics → tailoring, outerwear, and Fabrics exclusives</span> — projected +6pp season sell-through</span></div>
+          <div class="sim-step"><span class="sim-ts">ACTION</span><span class="sim-arrow">▸</span><span class="sim-action">Buying team reviews in Polaris — 3 overrides, rest accepted — <span class="sim-hl">POs adjusted with 6 suppliers</span></span></div>
+          <div class="sim-step"><span class="sim-ts">LOCKED</span><span class="sim-arrow">▸</span><span class="sim-action"><span class="sim-hl green">AW26 season enters market with data-backed conviction. First time in Liberty's history.</span></span></div>
+        </div>
+        <div class="sim-outcome-bar">
+          <div class="sim-oc"><div class="sim-oc-num">+6pp</div><div class="sim-oc-label">Projected sell-through improvement</div></div>
+          <div class="sim-oc"><div class="sim-oc-num">£4.2M</div><div class="sim-oc-label">Redeployed to highest-confidence categories</div></div>
+          <div class="sim-oc"><div class="sim-oc-num">1,400</div><div class="sim-oc-label">Styles stress-tested before buying opens</div></div>
+        </div>
+        <div class="sim-verdict">
+          <div class="sim-v-before"><span class="sim-v-label">Before Polaris</span>Gut + Excel + last season's numbers. Every buyer knew their own category. Nobody knew the whole picture. Capital was deployed on instinct dressed up as process.</div>
+          <div class="sim-v-after"><span class="sim-v-label">After Polaris</span>The season is simulated before it begins. Capital goes where three seasons of evidence point. The buying meeting is a sign-off, not a negotiation in the dark.</div>
+        </div>
+      </div>
+
+      <!-- ── SIM 02 ─────────────────────────────────────────── -->
+      <div class="sim-card tier-i">
+        <div class="sim-card-top">
+          <div class="sim-top-left">
+            <div class="sim-tier-badge">TIER I — STRATEGIC</div>
+            <div class="sim-card-name">The Print That Builds Empires</div>
+          </div>
+          <div class="sim-stake-block">
+            <div class="sim-stake-label">Decision at stake</div>
+            <div class="sim-stake-num">£5M+</div>
+            <div class="sim-stake-sub">AW26 creative and exclusive print budget</div>
+          </div>
+        </div>
+        <div class="sim-trigger-row">Trigger: AW26 creative brief cycle opens — which prints are worth the investment?</div>
+        <div class="sim-log">
+          <div class="sim-step"><span class="sim-ts">BUILD</span><span class="sim-arrow">▸</span><span class="sim-action">Creative ROI object built for <span class="sim-hl">87 Liberty prints</span> across 3 seasons — linked to first purchase, repeat rate, and 18-month customer value</span></div>
+          <div class="sim-step"><span class="sim-ts">ANALYSE</span><span class="sim-arrow">▸</span><span class="sim-action"><span class="sim-intel-tag tag-finding">FINDING</span>Ianthe print customers: <span class="sim-hl amber">2.4× higher 18-month lifetime value</span> vs avg Liberty customer</span></div>
+          <div class="sim-step"><span class="sim-ts">ANALYSE</span><span class="sim-arrow">▸</span><span class="sim-action"><span class="sim-intel-tag tag-finding">FINDING</span>3 external artist collaborations drove <span class="sim-warn">zero repeat purchase within 12 months</span> — acquisition with no retention</span></div>
+          <div class="sim-step"><span class="sim-ts">ANALYSE</span><span class="sim-arrow">▸</span><span class="sim-action"><span class="sim-intel-tag tag-finding">FINDING</span>Floral abstracts at £150–£400: <span class="sim-hl amber">3.1× LTV premium</span> — the single highest-value acquisition vector in the archive</span></div>
+          <div class="sim-step"><span class="sim-ts">ANALYSE</span><span class="sim-arrow">▸</span><span class="sim-action"><span class="sim-intel-tag tag-signal">SIGNAL</span>US customers buying Ianthe via Global-e at <span class="sim-hl amber">2.8× UK rate</span> — underserved market, identical margin</span></div>
+          <div class="sim-step"><span class="sim-ts">ACTION</span><span class="sim-arrow">▸</span><span class="sim-action">Creative Director reviews in Polaris Studio — <span class="sim-hl">£1.8M budget shifted</span> toward high-LTV print categories for AW26</span></div>
+          <div class="sim-step"><span class="sim-ts">OUTCOME</span><span class="sim-arrow">▸</span><span class="sim-action"><span class="sim-hl green">4 Ianthe-derivative prints commissioned. 3 zero-ROI collaborations retired. First data-backed creative brief in Liberty's history.</span></span></div>
+        </div>
+        <div class="sim-outcome-bar">
+          <div class="sim-oc"><div class="sim-oc-num">2.4×</div><div class="sim-oc-label">LTV uplift from highest-performing prints</div></div>
+          <div class="sim-oc"><div class="sim-oc-num">£1.8M</div><div class="sim-oc-label">Creative budget redeployed to proven drivers</div></div>
+          <div class="sim-oc"><div class="sim-oc-num">3</div><div class="sim-oc-label">Zero-ROI collaborations retired</div></div>
+        </div>
+        <div class="sim-verdict">
+          <div class="sim-v-before"><span class="sim-v-label">Before Polaris</span>Creative decisions were made on taste, instinct, and last season's sell figures. There was no LTV connection. The most important customer relationship question — which prints acquire keepers? — was unanswerable.</div>
+          <div class="sim-v-after"><span class="sim-v-label">After Polaris</span>Creative investment is a precision instrument. The brief is built on 3 seasons of customer behaviour. Liberty's creative genius now has a data backbone.</div>
+        </div>
+      </div>
+
+      <!-- ── SIM 03 ─────────────────────────────────────────── -->
+      <div class="sim-card tier-ii">
+        <div class="sim-card-top">
+          <div class="sim-top-left">
+            <div class="sim-tier-badge">TIER II — ENTERPRISE</div>
+            <div class="sim-card-name">The Crisis That Didn't Happen</div>
+          </div>
+          <div class="sim-stake-block">
+            <div class="sim-stake-label">Decision at stake</div>
+            <div class="sim-stake-num">£6.1M</div>
+            <div class="sim-stake-sub">AW26 production — sole-source supplier at risk</div>
+          </div>
+        </div>
+        <div class="sim-trigger-row">Trigger: weekly supplier health scan — three signals firing simultaneously on a single supplier</div>
+        <div class="sim-log">
+          <div class="sim-step"><span class="sim-ts">SIGNAL 1</span><span class="sim-arrow">▸</span><span class="sim-action"><span class="sim-intel-tag tag-signal">SIGNAL</span>Inbound shipments from Supplier X: <span class="sim-caution">+8.3 days average delay</span> over last 6 weeks — accelerating</span></div>
+          <div class="sim-step"><span class="sim-ts">SIGNAL 2</span><span class="sim-arrow">▸</span><span class="sim-action"><span class="sim-intel-tag tag-signal">SIGNAL</span>Quality inspection failure rate: <span class="sim-warn">1.2% → 4.7%</span> across last 2 batches — 4× degradation</span></div>
+          <div class="sim-step"><span class="sim-ts">SIGNAL 3</span><span class="sim-arrow">▸</span><span class="sim-action"><span class="sim-intel-tag tag-signal">SIGNAL</span>Supplier X increased wholesale allocation to a competing buyer — <span class="sim-caution">Liberty's share of capacity declining</span></span></div>
+          <div class="sim-step"><span class="sim-ts">RISK</span><span class="sim-arrow">▸</span><span class="sim-action"><span class="sim-intel-tag tag-alert">ALERT</span>Risk score: CRITICAL — <span class="sim-warn">£6.1M of AW26 orders dependent on this supplier</span> · 6-week window to act</span></div>
+          <div class="sim-step"><span class="sim-ts">ALERT</span><span class="sim-arrow">▸</span><span class="sim-action">Head of Buying + Supply Chain Director notified immediately — brief, evidence, and recommended action in one view</span></div>
+          <div class="sim-step"><span class="sim-ts">ACTION</span><span class="sim-arrow">▸</span><span class="sim-action">Alternative supplier qualified: same fabric specification, <span class="sim-hl">4-week lead time to switch</span> — still within AW26 window</span></div>
+          <div class="sim-step"><span class="sim-ts">RESOLVED</span><span class="sim-arrow">▸</span><span class="sim-action"><span class="sim-hl green">POs reassigned. 48 hours to decision. £6.1M of production secured. Crisis absorbed.</span></span></div>
+        </div>
+        <div class="sim-outcome-bar">
+          <div class="sim-oc"><div class="sim-oc-num">£6.1M</div><div class="sim-oc-label">Production risk neutralised</div></div>
+          <div class="sim-oc"><div class="sim-oc-num">6 wks</div><div class="sim-oc-label">Early warning — before it became a fire</div></div>
+          <div class="sim-oc"><div class="sim-oc-num">48h</div><div class="sim-oc-label">Alert to resolved decision</div></div>
+        </div>
+        <div class="sim-verdict">
+          <div class="sim-v-before"><span class="sim-v-label">Before Polaris</span>Supply chain risk was invisible until a delivery was late. Then it was a fire — missed launch dates, emergency sourcing at premium cost, markdown on styles that never arrived on time.</div>
+          <div class="sim-v-after"><span class="sim-v-label">After Polaris</span>Three signals. Six weeks of runway. The crisis is absorbed before the business feels it. The factory is never the headline.</div>
+        </div>
+      </div>
+
+      <!-- ── SIM 04 ─────────────────────────────────────────── -->
+      <div class="sim-card tier-ii">
+        <div class="sim-card-top">
+          <div class="sim-top-left">
+            <div class="sim-tier-badge">TIER II — ENTERPRISE</div>
+            <div class="sim-card-name">The Global Arbitrage</div>
+          </div>
+          <div class="sim-stake-block">
+            <div class="sim-stake-label">Decision at stake</div>
+            <div class="sim-stake-num">£1.1M</div>
+            <div class="sim-stake-sub">Foregone revenue from stock sitting in the wrong market</div>
+          </div>
+        </div>
+        <div class="sim-trigger-row">Trigger: weekly global demand analysis — the same cashmere is in the wrong country</div>
+        <div class="sim-log">
+          <div class="sim-step"><span class="sim-ts">INGEST</span><span class="sim-arrow">▸</span><span class="sim-action">International order data (Global-e) processed — demand by geography, style, price point, conversion rate</span></div>
+          <div class="sim-step"><span class="sim-ts">ANALYSE</span><span class="sim-arrow">▸</span><span class="sim-action"><span class="sim-intel-tag tag-finding">FINDING</span>US customers converting on cashmere knitwear at <span class="sim-hl amber">3.4× UK digital rate</span> — average order value 42% higher</span></div>
+          <div class="sim-step"><span class="sim-ts">ANALYSE</span><span class="sim-arrow">▸</span><span class="sim-action"><span class="sim-intel-tag tag-finding">FINDING</span><span class="sim-caution">14 styles over-allocated to UK warehouse</span> — under-represented in US fulfilment centre</span></div>
+          <div class="sim-step"><span class="sim-ts">ANALYSE</span><span class="sim-arrow">▸</span><span class="sim-action"><span class="sim-intel-tag tag-signal">SIGNAL</span>US peak demand window: <span class="sim-warn">6 weeks away</span> — inventory transfer must move within 10 days to arrive in time</span></div>
+          <div class="sim-step"><span class="sim-ts">RECOMMEND</span><span class="sim-arrow">▸</span><span class="sim-action">Reallocation: <span class="sim-hl amber">847 units across 14 styles → US fulfilment centre</span> — no new buying, no new cost</span></div>
+          <div class="sim-step"><span class="sim-ts">CONFIRM</span><span class="sim-arrow">▸</span><span class="sim-action">Logistics confirmed via order management system — transfer window available, cost: £4,200 freight</span></div>
+          <div class="sim-step"><span class="sim-ts">DONE</span><span class="sim-arrow">▸</span><span class="sim-action"><span class="sim-hl green">Head of Allocation approves. 847 units transferred. £1.1M in revenue unlocked from stock Liberty already owned.</span></span></div>
+        </div>
+        <div class="sim-outcome-bar">
+          <div class="sim-oc"><div class="sim-oc-num">£1.1M</div><div class="sim-oc-label">Revenue unlocked — no new buying, no new cost</div></div>
+          <div class="sim-oc"><div class="sim-oc-num">847</div><div class="sim-oc-label">Units deployed to highest-demand market</div></div>
+          <div class="sim-oc"><div class="sim-oc-num">3.4×</div><div class="sim-oc-label">US conversion rate vs UK digital on same styles</div></div>
+        </div>
+        <div class="sim-verdict">
+          <div class="sim-v-before"><span class="sim-v-label">Before Polaris</span>Allocation was set at buying. Geography was a forecast. The data sat across three systems and was never assembled. The demand signal arrived after the window closed.</div>
+          <div class="sim-v-after"><span class="sim-v-label">After Polaris</span>Every unit goes where the demand is highest. Stock is a deployable asset. The arbitrage is captured every week, not discovered at the annual review.</div>
+        </div>
+      </div>
+
+      <!-- ── SIM 05 ─────────────────────────────────────────── -->
+      <div class="sim-card tier-ii">
+        <div class="sim-card-top">
+          <div class="sim-top-left">
+            <div class="sim-tier-badge">TIER II — ENTERPRISE</div>
+            <div class="sim-card-name">The 847</div>
+          </div>
+          <div class="sim-stake-block">
+            <div class="sim-stake-label">Decision at stake</div>
+            <div class="sim-stake-num">38%</div>
+            <div class="sim-stake-sub">Of Liberty's annual revenue concentrated in 847 people</div>
+          </div>
+        </div>
+        <div class="sim-trigger-row">Trigger: nightly VIP scan — the 847 customers who are Liberty's revenue backbone, monitored every 24 hours</div>
+        <div class="sim-log">
+          <div class="sim-step"><span class="sim-ts">IDENTIFY</span><span class="sim-arrow">▸</span><span class="sim-action">Polaris identifies <span class="sim-hl amber">847 customers</span> — lifetime spend > £5,000, active in last 12 months — generating 38% of total retail revenue</span></div>
+          <div class="sim-step"><span class="sim-ts">MONITOR</span><span class="sim-arrow">▸</span><span class="sim-action">Every signal tracked: purchase history, site browsing (web analytics), email engagement, in-store visits (footfall sensor data), returns behaviour</span></div>
+          <div class="sim-step"><span class="sim-ts">ANALYSE</span><span class="sim-arrow">▸</span><span class="sim-action"><span class="sim-intel-tag tag-alert">ALERT</span><span class="sim-warn">23 of the 847 showing compound churn signals</span> — 90+ day gap + site engagement dropped + email open rate in decline</span></div>
+          <div class="sim-step"><span class="sim-ts">DRAFT</span><span class="sim-arrow">▸</span><span class="sim-action">For each: Polaris generates <span class="sim-hl">bespoke re-engagement</span> — matching purchase history, current browsing interest, and nearest store relationship</span></div>
+          <div class="sim-step"><span class="sim-ts">ACTION</span><span class="sim-arrow">▸</span><span class="sim-action">Head of Client Relations reviews 23 drafts in Polaris — <span class="sim-hl">approves with minor edits</span> — sends in one action</span></div>
+          <div class="sim-step"><span class="sim-ts">+48h</span><span class="sim-arrow">▸</span><span class="sim-action">11 of 23 respond · <span class="sim-hl green">8 purchase · avg spend £3,200</span></span></div>
+          <div class="sim-step"><span class="sim-ts">LOOP</span><span class="sim-arrow">▸</span><span class="sim-action"><span class="sim-hl green">£25,600 recovered. Churn risk scores reset. The 847 are monitored again tonight.</span></span></div>
+        </div>
+        <div class="sim-outcome-bar">
+          <div class="sim-oc"><div class="sim-oc-num">£25,600</div><div class="sim-oc-label">Recovered from 8 VIP re-engagements</div></div>
+          <div class="sim-oc"><div class="sim-oc-num">847</div><div class="sim-oc-label">VIPs monitored every 24 hours, every signal</div></div>
+          <div class="sim-oc"><div class="sim-oc-num">38%</div><div class="sim-oc-label">Of annual revenue now has an intelligence layer</div></div>
+        </div>
+        <div class="sim-verdict">
+          <div class="sim-v-before"><span class="sim-v-label">Before Polaris</span>VIP relationships ran on memory, personal relationships, and quarterly account reviews. The 847 were known by name. Their signals were not.</div>
+          <div class="sim-v-after"><span class="sim-v-label">After Polaris</span>Every touchpoint. Every signal. Every night. The 847 have a dedicated intelligence layer and it never sleeps. Liberty's most valuable asset is its most protected one.</div>
+        </div>
+      </div>
+
+      <!-- ── SIM 06 ─────────────────────────────────────────── -->
+      <div class="sim-card tier-iii" style="margin-bottom:0">
+        <div class="sim-card-top">
+          <div class="sim-top-left">
+            <div class="sim-tier-badge">TIER III — OPERATIONAL</div>
+            <div class="sim-card-name">The Operating Rhythm</div>
+          </div>
+          <div class="sim-stake-block">
+            <div class="sim-stake-label">Decision at stake</div>
+            <div class="sim-stake-num">Daily</div>
+            <div class="sim-stake-sub">Every morning. Every decision. The cadence that makes the other tiers possible.</div>
+          </div>
+        </div>
+        <div class="sim-trigger-row">Trigger: 06:58 every morning — automated, always-on, no human initiates this</div>
+        <div class="sim-log">
+          <div class="sim-step"><span class="sim-ts">06:58:12</span><span class="sim-arrow">▸</span><span class="sim-action">Overnight till reconciliation complete — <span class="sim-hl">£127,340 across 4 stores</span> (checkout system)</span></div>
+          <div class="sim-step"><span class="sim-ts">06:58:31</span><span class="sim-arrow">▸</span><span class="sim-action">AW25 sell-through checked against buying plan — <span class="sim-hl">48 styles reviewed</span> in seconds</span></div>
+          <div class="sim-step"><span class="sim-ts">06:58:44</span><span class="sim-arrow">▸</span><span class="sim-action"><span class="sim-intel-tag tag-alert">ALERT</span>3 styles tracking <span class="sim-warn">–18%+ below target</span> — Burnished Leather Tote at 38% sold (target: 55%) · <span class="sim-caution">11 days remaining</span></span></div>
+          <div class="sim-step"><span class="sim-ts">06:59:01</span><span class="sim-arrow">▸</span><span class="sim-action"><span class="sim-intel-tag tag-finding">RECOMMENDATION</span>15% discount on website + in-store → projected <span class="sim-hl">+13pp sell-through</span>, £8K residual vs £47K at current pace</span></div>
+          <div class="sim-step"><span class="sim-ts">07:00:00</span><span class="sim-arrow">▸</span><span class="sim-action">CEO brief written, delivered to inbox — plain English, numbers, actions. <span class="sim-hl">Before the team arrives.</span></span></div>
+          <div class="sim-step"><span class="sim-ts">09:14:03</span><span class="sim-arrow">▸</span><span class="sim-action">Buyer opens Polaris — sees recommendation, demand curve, confidence interval. <span class="sim-hl">Clicks: Approve.</span></span></div>
+          <div class="sim-step"><span class="sim-ts">09:18:01</span><span class="sim-arrow">▸</span><span class="sim-action">Discount live simultaneously on Liberty.com and store tills. No emails. No spreadsheet. No meeting.</span></div>
+          <div class="sim-step"><span class="sim-ts">REPEAT</span><span class="sim-arrow">▸</span><span class="sim-action"><span class="sim-hl green">This runs every single day. 365 days. The operating cadence that turns Tier I and Tier II intelligence into action.</span></span></div>
+        </div>
+        <div class="sim-outcome-bar">
+          <div class="sim-oc"><div class="sim-oc-num">0 days</div><div class="sim-oc-label">Decision latency on daily intelligence</div></div>
+          <div class="sim-oc"><div class="sim-oc-num">8 min</div><div class="sim-oc-label">Alert to live markdown in both channels</div></div>
+          <div class="sim-oc"><div class="sim-oc-num">365</div><div class="sim-oc-label">Days per year. Always-on. No exceptions.</div></div>
+        </div>
+        <div class="sim-verdict">
+          <div class="sim-v-before"><span class="sim-v-label">Before Polaris</span>Morning meeting to find out how last night went. Markdown decision: 5–7 days, 3 spreadsheets, 2 approval emails, manual update in each system. The window often closed before the decision did.</div>
+          <div class="sim-v-after"><span class="sim-v-label">After Polaris</span>The intelligence arrives before the team does. The recommendation is already formed. The decision takes one click. The window never closes on the right call.</div>
+        </div>
+      </div>
+    </section>
+
+  </div><!-- /content -->
+</div><!-- /app -->
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- THREE.JS + LOGIC                                         -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<script>
+// ─── THREE.JS CONSTELLATION INTRO ────────────────────────
+
+const canvas = document.getElementById('three-canvas');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x000000);
+
+const camera = new THREE.PerspectiveCamera(55, 1, 0.1, 300);
+camera.position.set(0, 0, 55);
+camera.lookAt(0, 0, 0);
+
+function resize() {
+  const w = canvas.offsetWidth, h = canvas.offsetHeight;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+}
+resize();
+window.addEventListener('resize', resize);
+
+// ── Background star field ────────────────────────────────
+const starPositions = new Float32Array(2400 * 3);
+for (let i = 0; i < 2400; i++) {
+  const r = 45 + Math.random() * 120;
+  const theta = Math.random() * Math.PI * 2;
+  const phi = Math.acos(2 * Math.random() - 1);
+  starPositions[i*3]   = r * Math.sin(phi) * Math.cos(theta);
+  starPositions[i*3+1] = r * Math.sin(phi) * Math.sin(theta);
+  starPositions[i*3+2] = r * Math.cos(phi);
+}
+const starGeo = new THREE.BufferGeometry();
+starGeo.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+const stars = new THREE.Points(starGeo, new THREE.PointsMaterial({
+  color: 0x6699cc, size: 0.18, transparent: true, opacity: 0, sizeAttenuation: true
+}));
+scene.add(stars);
+
+// ── Glow helper (additive blending spheres) ──────────────
+function makeGlowNode(radius, color, glowRadius) {
+  const group = new THREE.Group();
+  const layers = [
+    { r: glowRadius * 2.5, o: 0.025 },
+    { r: glowRadius * 1.5, o: 0.06  },
+    { r: glowRadius,       o: 0.18  },
+    { r: radius,           o: 1.0   }
+  ];
+  layers.forEach(l => {
+    const m = new THREE.Mesh(
+      new THREE.SphereGeometry(l.r, 12, 12),
+      new THREE.MeshBasicMaterial({
+        color, transparent: true, opacity: l.o,
+        blending: THREE.AdditiveBlending, depthWrite: false
+      })
+    );
+    group.add(m);
+  });
+  return group;
+}
+
+// ── Central Polaris star ─────────────────────────────────
+const centralStar = makeGlowNode(1.2, 0xffffff, 2.8);
+centralStar.visible = false;
+scene.add(centralStar);
+
+// ── Shockwave ring ───────────────────────────────────────
+const ringGeo = new THREE.RingGeometry(0.6, 1.1, 96);
+const ringMat = new THREE.MeshBasicMaterial({
+  color:0x60a5fa, transparent:true, opacity:0,
+  side:THREE.DoubleSide,
+  blending:THREE.AdditiveBlending, depthWrite:false
+});
+const shockRing = new THREE.Mesh(ringGeo, ringMat);
+shockRing.visible = false;
+scene.add(shockRing);
+
+// Second wider ring for layered effect
+const ring2Geo = new THREE.RingGeometry(0.4, 0.7, 96);
+const ring2Mat = new THREE.MeshBasicMaterial({
+  color:0xffffff, transparent:true, opacity:0,
+  side:THREE.DoubleSide,
+  blending:THREE.AdditiveBlending, depthWrite:false
+});
+const shockRing2 = new THREE.Mesh(ring2Geo, ring2Mat);
+shockRing2.visible = false;
+scene.add(shockRing2);
+
+let shockProgress = -1;
+
+// ── Data source nodes ────────────────────────────────────
+const innerSources = [
+  { label: 'M3/TORIA ERP',    color: 0x3b82f6 },
+  { label: 'AX / D365',       color: 0x3b82f6 },
+  { label: 'APTOS POS',       color: 0x22d3ee },
+  { label: 'GLOBAL-E',        color: 0x22d3ee },
+  { label: 'GA4',             color: 0x34d399 },
+  { label: 'RESPONSYS',       color: 0xa78bfa },
+  { label: 'FOOTFALLCAM',     color: 0xfbbf24 },
+  { label: 'WILLOW DW',       color: 0x3b82f6 },
+];
+const outerSources = [
+  { label: 'META ADS',        color: 0x6b7280 },
+  { label: 'GOOGLE ADS',      color: 0x6b7280 },
+  { label: 'TIKTOK',          color: 0x6b7280 },
+  { label: 'RAKUTEN',         color: 0x6b7280 },
+  { label: 'OMS',             color: 0x6b7280 },
+  { label: 'RETAIL WMS',      color: 0x6b7280 },
+  { label: 'BAZAARVOICE',     color: 0x6b7280 },
+  { label: 'CHARGEBEE',       color: 0x6b7280 },
+  { label: 'SALESFORCE',      color: 0x6b7280 },
+  { label: 'SHAREPOINT',      color: 0x6b7280 },
+  { label: 'MICROSOFT ADS',   color: 0x6b7280 },
+  { label: 'PARTNERIZE',      color: 0x6b7280 },
+  { label: 'APTOS CRM',       color: 0x6b7280 },
+  { label: 'SUB2 / MNP',      color: 0x6b7280 },
+];
+
+const INNER_R = 18, OUTER_R = 30;
+
+function makeNodeGroup(sources, radius) {
+  return sources.map((s, i) => {
+    const angle = (i / sources.length) * Math.PI * 2;
+    const x = Math.cos(angle) * radius;
+    const y = Math.sin(angle) * radius;
+    const nodeSize = radius === INNER_R ? 0.65 : 0.40;
+    const glowSize  = radius === INNER_R ? 1.3  : 0.8;
+    const g = makeGlowNode(nodeSize, s.color, glowSize);
+    g.position.set(x, y, 0);
+    g.visible = false;
+    scene.add(g);
+    return { group: g, x, y, source: s };
+  });
+}
+
+const innerNodes = makeNodeGroup(innerSources, INNER_R);
+const outerNodes = makeNodeGroup(outerSources, OUTER_R);
+
+// ── Connection lines ─────────────────────────────────────
+function makeLine(x1,y1,x2,y2, color=0x3b82f6, opacity=0.25) {
+  const geo = new THREE.BufferGeometry().setFromPoints([
+    new THREE.Vector3(x1,y1,0), new THREE.Vector3(x2,y2,0)
+  ]);
+  const mat = new THREE.LineBasicMaterial({
+    color, transparent: true, opacity,
+    blending: THREE.AdditiveBlending, depthWrite: false
+  });
+  const line = new THREE.Line(geo, mat);
+  line.visible = false;
+  scene.add(line);
+  return line;
+}
+
+const innerLines = innerNodes.map(n => makeLine(0,0,n.x,n.y, 0x3b82f6, 0.2));
+const outerLines = outerNodes.map((n,i) => {
+  const inner = innerNodes[i % innerNodes.length];
+  return makeLine(inner.x, inner.y, n.x, n.y, 0x334466, 0.15);
+});
+
+// ── HTML labels (overlay) ────────────────────────────────
+const labelsDiv = document.createElement('div');
+labelsDiv.style.cssText = 'position:absolute;inset:0;pointer-events:none;overflow:hidden';
+document.getElementById('intro').appendChild(labelsDiv);
+
+const allNodes = [...innerNodes, ...outerNodes];
+const labelEls = allNodes.map(n => {
+  const el = document.createElement('div');
+  el.style.cssText = `
+    position:absolute;font-family:'JetBrains Mono',monospace;
+    font-size:9px;letter-spacing:.12em;text-transform:uppercase;
+    color:rgba(148,163,184,0);white-space:nowrap;
+    transform:translate(-50%,-50%);transition:color .4s;
+    text-shadow:0 0 8px rgba(59,130,246,.5);
+  `;
+  el.textContent = n.source.label;
+  labelsDiv.appendChild(el);
+  return el;
+});
+
+// ── Animation timeline ───────────────────────────────────
+const clock = new THREE.Clock();
+let introComplete = false;
+
+// Stages:
+// 0-0.8s   : stars fade in
+// 0.8-1.2s : central star appears
+// 1.2-4.2s : inner nodes appear (one every 0.375s)
+// 2.0-4.2s : inner lines draw
+// 4.2-7.0s : outer nodes appear (one every 0.2s)
+// 7.5s+    : intro-title typewriter (completes → flash + shockwave)
+// 9.0s+    : sub / meta / divider / button
+
+let subtitleShown = false, metaShown = false, btnShown = false, titleStarted = false;
+
+function projectToScreen(x, y) {
+  const vec = new THREE.Vector3(x, y, 0);
+  vec.project(camera);
+  return {
+    sx: (vec.x + 1) / 2 * canvas.offsetWidth,
+    sy: (1 - (vec.y + 1) / 2) * canvas.offsetHeight
+  };
+}
+
+function animate() {
+  if (introComplete) return;
+  requestAnimationFrame(animate);
+  const t = clock.getElapsedTime();
+
+  // Slow camera drift
+  camera.position.x = Math.sin(t * 0.04) * 4;
+  camera.position.y = Math.cos(t * 0.03) * 2.5 + 0.5;
+  camera.lookAt(0, 0, 0);
+
+  // Stars fade in
+  stars.material.opacity = Math.min(t / 1.5, 0.45);
+
+  // Central star
+  if (t > 0.8) {
+    centralStar.visible = true;
+    const s = Math.min((t - 0.8) / 0.6, 1) * (1 + 0.06 * Math.sin(t * 2.5));
+    centralStar.scale.setScalar(s);
+  }
+
+  // Inner nodes + lines
+  innerNodes.forEach((n, i) => {
+    const revealAt = 1.2 + i * 0.375;
+    if (t > revealAt) {
+      n.group.visible = true;
+      const progress = Math.min((t - revealAt) / 0.4, 1);
+      n.group.scale.setScalar(progress);
+      innerLines[i].visible = true;
+      innerLines[i].material.opacity = progress * 0.22;
+    }
+  });
+
+  // Outer nodes + lines
+  outerNodes.forEach((n, i) => {
+    const revealAt = 4.2 + i * 0.2;
+    if (t > revealAt) {
+      n.group.visible = true;
+      const p = Math.min((t - revealAt) / 0.3, 1);
+      n.group.scale.setScalar(p);
+      outerLines[i].visible = true;
+      outerLines[i].material.opacity = p * 0.14;
+    }
+  });
+
+  // Update label positions
+  allNodes.forEach((n, i) => {
+    if (!n.group.visible) return;
+    const { sx, sy } = projectToScreen(n.x, n.y);
+    const r = n.x * n.x + n.y * n.y;
+    const isInner = i < innerNodes.length;
+    const offset = isInner ? 18 : 14;
+    // push label away from center
+    const nx = n.x / Math.sqrt(r), ny = n.y / Math.sqrt(r);
+    labelEls[i].style.left = (sx + nx * offset) + 'px';
+    labelEls[i].style.top  = (sy - ny * offset) + 'px';
+    const revealAt = isInner ? (1.2 + i * 0.375 + 0.3) : (4.2 + (i - innerNodes.length) * 0.2 + 0.3);
+    if (t > revealAt) {
+      const p = Math.min((t - revealAt) / 0.5, 1);
+      labelEls[i].style.color = `rgba(${isInner ? '148,163,184' : '75,85,99'},${p * (isInner ? 0.85 : 0.55)})`;
+    }
+  });
+
+  // Slow global rotation
+  scene.rotation.z = t * 0.008;
+
+  // Shockwave rings
+  if (shockProgress >= 0) {
+    shockProgress += 0.022;
+    const p = shockProgress;
+    // Ring 1: fast expand, fade out
+    shockRing.visible = true;
+    shockRing.scale.setScalar(1 + p * 18);
+    shockRing.material.opacity = Math.max(0, 0.85 - p * 1.1);
+    // Ring 2: slightly slower, white core
+    shockRing2.visible = true;
+    shockRing2.scale.setScalar(1 + p * 11);
+    shockRing2.material.opacity = Math.max(0, 0.7 - p * 1.4);
+    if (p > 1) { shockProgress = -1; shockRing.visible = false; shockRing2.visible = false; }
+  }
+
+  renderer.render(scene, camera);
+
+  // Text reveals
+  if (t > 7.5 && !titleStarted) {
+    titleStarted = true;
+    const el = document.getElementById('intro-title');
+    el.textContent = '';
+    el.classList.add('typing');
+    const letters = ['P','O','L','A','R','I','S'];
+    let i = 0;
+    (function typeNext() {
+      if (i < letters.length) {
+        el.textContent += letters[i++];
+        setTimeout(typeNext, 130);
+      } else {
+        // — SHOUT — flash + shockwave + node flare
+        const flash = document.getElementById('flash');
+        flash.style.transition = 'opacity 0.06s ease';
+        flash.style.opacity = '1';
+        setTimeout(() => {
+          flash.style.transition = 'opacity 0.9s ease';
+          flash.style.opacity = '0';
+        }, 60);
+        shockProgress = 0;
+        // Flare all constellation nodes briefly
+        allNodes.forEach(n => {
+          if (!n.group.visible) return;
+          n.group.children.forEach(c => {
+            if (c.material && c.material.color) {
+              const orig = c.material.color.clone();
+              c.material.color.set(0xffffff);
+              c.material.opacity = Math.min((c.material.opacity || 0.5) * 2.5, 1);
+              setTimeout(() => { c.material.color.copy(orig); }, 220);
+            }
+          });
+        });
+        setTimeout(() => { el.classList.remove('typing'); el.classList.add('done'); }, 700);
+      }
+    })();
+  }
+  if (t > 9.0 && !subtitleShown) {
+    subtitleShown = true;
+    document.getElementById('intro-sub').classList.add('show');
+  }
+  if (t > 9.5 && !metaShown) {
+    metaShown = true;
+    document.getElementById('intro-meta').classList.add('show');
+    document.getElementById('intro-divider').classList.add('show');
+  }
+  if (t > 10.2 && !btnShown) {
+    btnShown = true;
+    document.getElementById('enter-btn').classList.add('show');
+  }
+}
+animate();
+
+// ─── ENTER PLATFORM ──────────────────────────────────────
+function enterPlatform() {
+  introComplete = true;
+  labelsDiv.style.display = 'none';
+  const intro = document.getElementById('intro');
+  intro.classList.add('exit');
+  setTimeout(() => {
+    intro.style.display = 'none';
+    const app = document.getElementById('app');
+    app.removeAttribute('hidden');
+    requestAnimationFrame(() => app.classList.add('visible'));
+  }, 800);
+}
+
+// ─── NAVIGATION ──────────────────────────────────────────
+const sectionIds = ['s0','s1','s2','s3','s4','s5','s6','s7'];
+
+function goTo(idx) {
+  document.getElementById(sectionIds[idx]).scrollIntoView({ behavior: 'smooth' });
+  updateNav(idx);
+}
+
+function updateNav(idx) {
+  document.querySelectorAll('.sb-link').forEach((el, i) => {
+    el.classList.toggle('active', i === idx);
+  });
+}
+
+// Observe sections
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting && e.intersectionRatio > 0.5) {
+      const idx = sectionIds.indexOf(e.target.id);
+      if (idx >= 0) updateNav(idx);
+    }
+  });
+}, { threshold: 0.5, root: document.getElementById('content') });
+
+sectionIds.forEach(id => {
+  const el = document.getElementById(id);
+  if (el) observer.observe(el);
+});
+</script>
+</body>
+</html>
