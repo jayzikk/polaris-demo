@@ -600,6 +600,61 @@ body{background:var(--bg);color:var(--text);font-family:var(--f-body);overflow:h
 .sim-v-after { color:var(--text2) }
 .sim-v-after .sim-v-label { color:var(--green) }
 
+/* ─── ACCESS GATE ────────────────────────────────────── */
+#gate {
+  position:fixed;inset:0;z-index:9999;background:#000;
+  display:flex;align-items:center;justify-content:center;
+  flex-direction:column;gap:0;
+  transition:opacity .6s ease;
+}
+#gate.exit{opacity:0;pointer-events:none}
+.gate-star {
+  font-size:22px;color:var(--blue);
+  text-shadow:0 0 20px var(--blue);
+  margin-bottom:20px;
+  animation:starPulse 3s ease-in-out infinite;
+}
+.gate-title {
+  font-family:var(--f-display);font-size:28px;font-weight:700;
+  letter-spacing:.3em;color:#fff;
+  text-shadow:0 0 40px rgba(59,130,246,.6);
+  margin-bottom:6px;
+}
+.gate-sub {
+  font-family:var(--f-mono);font-size:10px;letter-spacing:.2em;
+  color:var(--text3);text-transform:uppercase;margin-bottom:40px;
+}
+.gate-label {
+  font-family:var(--f-mono);font-size:9px;letter-spacing:.18em;
+  color:var(--text3);text-transform:uppercase;margin-bottom:10px;
+}
+#gate-input {
+  background:transparent;border:1px solid var(--border2);
+  color:var(--text);font-family:var(--f-mono);font-size:14px;
+  letter-spacing:.22em;text-align:center;text-transform:uppercase;
+  padding:14px 32px;width:280px;outline:none;
+  transition:border-color .2s;caret-color:var(--blue2);
+}
+#gate-input:focus{border-color:var(--blue)}
+#gate-input.error{border-color:var(--red);animation:gateShake .35s ease}
+#gate-input::placeholder{color:var(--text3);letter-spacing:.12em}
+#gate-error {
+  font-family:var(--f-mono);font-size:10px;color:var(--red);
+  letter-spacing:.1em;margin-top:10px;height:14px;text-align:center;
+  text-transform:uppercase;
+}
+#gate-hint {
+  font-family:var(--f-mono);font-size:9px;color:var(--text3);
+  letter-spacing:.08em;margin-top:32px;
+}
+@keyframes gateShake {
+  0%,100%{transform:translateX(0)}
+  20%{transform:translateX(-8px)}
+  40%{transform:translateX(8px)}
+  60%{transform:translateX(-5px)}
+  80%{transform:translateX(5px)}
+}
+
 /* Responsive tweaks */
 @media(max-width:1100px){
   .stat-grid{grid-template-columns:repeat(2,1fr)}
@@ -614,6 +669,17 @@ body{background:var(--bg);color:var(--text);font-family:var(--f-body);overflow:h
 <!-- ═══════════════════════════════════════════════════════ -->
 <!-- INTRO                                                    -->
 <!-- ═══════════════════════════════════════════════════════ -->
+<!-- ACCESS GATE -->
+<div id="gate">
+  <div class="gate-star">✦</div>
+  <div class="gate-title">POLARIS</div>
+  <div class="gate-sub">Liberty London — Restricted Access</div>
+  <div class="gate-label">Enter access code</div>
+  <input id="gate-input" type="password" placeholder="············" autocomplete="off" spellcheck="false">
+  <div id="gate-error"></div>
+  <div id="gate-hint">Press Enter to continue</div>
+</div>
+
 <div id="intro">
   <canvas id="three-canvas"></canvas>
   <div id="flash"></div>
@@ -1552,7 +1618,7 @@ const labelEls = allNodes.map(n => {
 });
 
 // ── Animation timeline ───────────────────────────────────
-const clock = new THREE.Clock();
+let clock = new THREE.Clock(); clock.stop();
 let introComplete = false;
 
 // Stages:
@@ -1709,7 +1775,51 @@ function animate() {
     document.getElementById('enter-btn').classList.add('show');
   }
 }
-animate();
+// ─── ACCESS GATE LOGIC ───────────────────────────────────
+(function() {
+  const HASH = '7d9c22fdcf40199ca7c2a2ebd092cc63e39a6098a9c4b711c373dfc7fc7fabc4';
+
+  async function sha256(str) {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+  }
+
+  function startDemo() {
+    clock = new THREE.Clock();
+    animate();
+  }
+
+  // Already authed this session?
+  if (sessionStorage.getItem('polaris_auth') === '1') {
+    document.getElementById('gate').style.display = 'none';
+    startDemo();
+    return;
+  }
+
+  const input = document.getElementById('gate-input');
+  const errEl = document.getElementById('gate-error');
+
+  input.focus();
+
+  async function attempt() {
+    const val = input.value.trim().toUpperCase();
+    if (!val) return;
+    const h = await sha256(val);
+    if (h === HASH) {
+      sessionStorage.setItem('polaris_auth', '1');
+      const gate = document.getElementById('gate');
+      gate.classList.add('exit');
+      setTimeout(() => { gate.style.display = 'none'; startDemo(); }, 650);
+    } else {
+      errEl.textContent = 'ACCESS DENIED';
+      input.classList.add('error');
+      input.value = '';
+      setTimeout(() => { input.classList.remove('error'); errEl.textContent = ''; input.focus(); }, 800);
+    }
+  }
+
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') attempt(); });
+})();
 
 // ─── ENTER PLATFORM ──────────────────────────────────────
 function enterPlatform() {
